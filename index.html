@@ -508,7 +508,7 @@
                 <div class="bg-brand-50 p-4 rounded-xl border border-brand-100 space-y-2">
                     <label class="block font-bold text-brand-700 text-xs uppercase">Google Apps Script Web App URL</label>
                     <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-brand-500 bg-white">
-                    <p class="text-[11px] text-slate-500">將您部署完成的 Web App 網址貼於上方，即可直接將 1B (STEAM)、1C/2A/3B (CL) 與 F4/F6 (ICT) 的課堂資料自動存入 Google 試算表中。</p>
+                    <p class="text-[11px] text-slate-500">已內建預設 Google Sheet 雲端連結，在任何裝置開啟皆可自動連線！如日後需要更換試算表，可於此處更新。</p>
                 </div>
 
                 <!-- Embed Height Tip -->
@@ -615,10 +615,13 @@ function doGet(e) {
     </div>
 
     <script>
+        // System Default Google Apps Script Web App URL
+        const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwtXBYsOpQh4bPcJM3EbOrXFr50FMYGhubd3iMn5IOMM146epApkKGfT4zBeGlVc4E7oQ/exec';
+
         // System State
         let appState = {
             records: [],
-            gasUrl: localStorage.getItem('teacher_app_gas_url') || '',
+            gasUrl: localStorage.getItem('teacher_app_gas_url') || DEFAULT_GAS_URL,
             activeTab: 'new'
         };
 
@@ -1135,7 +1138,7 @@ function doGet(e) {
         }
 
         function saveGasSettings() {
-            const url = document.getElementById('gasUrlInput').value.trim();
+            const url = document.getElementById('gasUrlInput').value.trim() || DEFAULT_GAS_URL;
             appState.gasUrl = url;
             localStorage.setItem('teacher_app_gas_url', url);
             updateGasBadgeStatus(!!url);
