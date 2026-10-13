@@ -7,13 +7,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
-    <title>教師課堂細節、功課與待辦管理系統</title>
+    <title>課堂紀錄與功課管理系統</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -32,6 +32,20 @@
                             500: '#a855f7',
                             600: '#9333ea',
                             700: '#7e22ce'
+                        },
+                        cl: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d'
+                        },
+                        ict: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8'
                         }
                     },
                     fontFamily: {
@@ -54,6 +68,7 @@
             width: 100%;
         }
         
+        /* Auto height behavior for iframe embedding like Google Sites */
         body {
             min-height: 100vh;
             display: flex;
@@ -79,34 +94,21 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes floatBounce {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-8px) rotate(3deg); }
-        }
-        .animate-mascot {
-            animation: floatBounce 3s ease-in-out infinite;
-        }
-
-        @keyframes pulseSparkle {
-            0%, 100% { opacity: 0.3; transform: scale(0.9); }
-            50% { opacity: 1; transform: scale(1.1); }
-        }
-        .sparkle-effect {
-            animation: pulseSparkle 2s ease-in-out infinite;
-        }
-
+        /* Prevent auto zoom on iOS Safari when focus on inputs */
         @media screen and (max-width: 768px) {
             input, select, textarea {
                 font-size: 16px !important;
             }
         }
 
+        /* Touch target minimum height for mobile & tablets */
         button, select, input, textarea {
-            min-height: 40px;
+            min-height: 42px;
         }
 
+        /* Print Optimization for generating PDF/Reports on any platform */
         @media print {
-            header, button, #toastContainer, #settingsModal, .no-print, .sidebar-column, .floating-mascot-btn {
+            header, button, #toastContainer, #settingsModal, .no-print {
                 display: none !important;
             }
             body {
@@ -116,6 +118,10 @@
             main {
                 max-width: 100% !important;
                 padding: 0 !important;
+            }
+            .bg-white {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
             }
         }
     </style>
@@ -130,790 +136,588 @@
                     <i class="fa-solid fa-laptop-code"></i>
                 </div>
                 <div>
-                    <h1 class="text-sm sm:text-lg font-bold text-slate-900 leading-tight">教師課堂細節、功課與待辦管理系統</h1>
-                    <p class="text-[10px] sm:text-xs text-slate-500">Classroom, Homework & To-Do Tracker (S1-S6 ICT)</p>
+                    <h1 class="text-sm sm:text-lg font-bold text-slate-900 leading-tight">教師課堂細節與功課紀錄系統</h1>
+                    <p class="text-[10px] sm:text-xs text-slate-500">Classroom & Homework Tracker (STEAM / CL / ICT)</p>
                 </div>
             </div>
 
-            <!-- Quick Action Buttons -->
+            <!-- GAS Status Badge & Quick Settings -->
             <div class="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-0 border-slate-100 pt-2 sm:pt-0">
+                <div id="networkStatus" class="hidden sm:inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>網路連線正常</span>
+                </div>
                 
-                <!-- Open Google Sheet Button -->
-                <button onclick="openGoogleSheet()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-sm text-xs font-semibold rounded-lg transition min-h-[38px] touch-manipulation group">
-                    <i class="fa-solid fa-file-excel text-emerald-100 group-hover:scale-110 transition-transform"></i>
-                    <span>打開 Google Sheet</span>
-                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-70"></i>
-                </button>
-
-                <div id="gasStatusBadge" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                <div id="gasStatusBadge" class="flex items-center space-x-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
                     <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                    <span id="gasStatusText">本機儲存</span>
+                    <span id="gasStatusText">本機模式</span>
                 </div>
 
                 <button onclick="openSettingsModal()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 border border-slate-300 shadow-sm text-xs font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition min-h-[38px] touch-manipulation">
                     <i class="fa-solid fa-gear text-slate-500"></i>
-                    <span class="hidden xs:inline">設定 / 雲端連結</span>
+                    <span class="hidden xs:inline">設定 / 雲端指南</span>
                     <span class="xs:hidden">設定</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Workspace Grid -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-        
-        <!-- Tab Navigation Bar -->
-        <div class="flex border border-slate-200/80 mb-5 bg-white rounded-2xl p-1.5 shadow-sm">
-            <button id="tabBtnAdd" onclick="switchTab('add')" class="flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center justify-center space-x-2 bg-brand-600 text-white shadow-sm">
-                <i class="fa-solid fa-pen-to-square"></i>
-                <span>新增課堂紀錄</span>
-            </button>
-            <button id="tabBtnHistory" onclick="switchTab('history')" class="flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center justify-center space-x-2 text-slate-600 hover:bg-slate-100">
-                <i class="fa-solid fa-box-archive"></i>
-                <span>已記錄課堂歷史</span>
-                <span id="tabRecordCountBadge" class="bg-purple-100 text-purple-700 text-xs px-2.5 py-0.5 rounded-full font-bold ml-1">0</span>
-            </button>
-        </div>
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col gap-4 sm:gap-6">
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
-            
-            <!-- LEFT COLUMN (8 cols): Class Input Form OR Records List depending on active tab -->
-            <div class="lg:col-span-8 space-y-5 lg:space-y-6">
-                
-                <!-- TAB 1: Record Input Card -->
-                <div id="tabContentAdd" class="animate-fade-in">
-                    <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-6 transition-all hover:shadow-md">
-                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-2 h-5 bg-brand-500 rounded-full inline-block"></span>
-                                <h2 class="text-base sm:text-lg font-bold text-slate-800">新增課堂紀錄</h2>
-                            </div>
-                            <span class="text-xs text-slate-400 font-medium" id="currentDateStr"></span>
-                        </div>
-
-                        <form id="classRecordForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                                <!-- Grade Select -->
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">年級 <span class="text-red-500">*</span></label>
-                                    <select id="formGrade" required onchange="updateTopicsByForm()" class="w-full rounded-xl border-slate-300 bg-slate-50 text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
-                                        <option value="S1">中一 (S1)</option>
-                                        <option value="S2">中二 (S2)</option>
-                                        <option value="S3">中三 (S3)</option>
-                                        <option value="S4" selected>中四 (S4 DSE ICT)</option>
-                                        <option value="S5">中五 (S5 DSE ICT)</option>
-                                        <option value="S6">中六 (S6 DSE ICT)</option>
-                                    </select>
-                                </div>
-
-                                <!-- Class Name -->
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">班別 <span class="text-red-500">*</span></label>
-                                    <input type="text" id="className" required placeholder="例如: 4A, 1B" class="w-full rounded-xl border-slate-300 bg-slate-50 text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
-                                </div>
-
-                                <!-- Period / Time -->
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">節數 / 時間</label>
-                                    <input type="text" id="classPeriod" placeholder="例如: 第 2-3 節 (09:00-10:10)" class="w-full rounded-xl border-slate-300 bg-slate-50 text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
-                                </div>
-                            </div>
-
-                            <!-- Topic Select (Dynamically Populated) -->
-                            <div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <label class="block text-xs font-semibold text-slate-600">單元 / 課題 <span class="text-red-500">*</span></label>
-                                    <span id="curriculumBadge" class="text-[11px] text-brand-600 bg-brand-50 font-medium px-2 py-0.5 rounded-full">DSE ICT 課程</span>
-                                </div>
-                                <select id="classTopic" required class="w-full rounded-xl border-slate-300 bg-slate-50 text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
-                                    <!-- Populated by JS -->
-                                </select>
-                            </div>
-
-                            <!-- Homework Assigned -->
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1"><i class="fa-solid fa-book-bookmark text-indigo-500 mr-1"></i>佈置功課 / 作業細節</label>
-                                <input type="text" id="homeworkAssigned" placeholder="例如: 完成 工作紙 3.2 (下週一交) 或 課本 P.45 Q1-5" class="w-full rounded-xl border-slate-300 bg-slate-50 text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
-                            </div>
-
-                            <!-- Teaching Notes & Follow-up -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1"><i class="fa-solid fa-chalkboard-user text-emerald-500 mr-1"></i>教學進度與學生反應</label>
-                                    <textarea id="teachingNotes" rows="2" placeholder="紀錄學生理解情況、需補充內容等..." class="w-full rounded-xl border-slate-300 bg-slate-50 text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition custom-scrollbar"></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1"><i class="fa-solid fa-bell text-amber-500 mr-1"></i>下集跟進 / 待處理事項</label>
-                                    <textarea id="followUpNotes" rows="2" placeholder="下節需要派發工作紙、小測評分等..." class="w-full rounded-xl border-slate-300 bg-slate-50 text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition custom-scrollbar"></textarea>
-                                </div>
-                            </div>
-
-                            <!-- Submit Button -->
-                            <div class="pt-2 flex justify-end">
-                                <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2">
-                                    <i class="fa-solid fa-plus"></i>
-                                    <span>儲存課堂紀錄</span>
-                                </button>
-                            </div>
-                        </form>
-                    </section>
-                </div>
-
-                <!-- TAB 2: Class Records List & Filters -->
-                <div id="tabContentHistory" class="hidden animate-fade-in">
-                    <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-6">
-                        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-2 h-5 bg-purple-500 rounded-full inline-block"></span>
-                                <h2 class="text-base sm:text-lg font-bold text-slate-800">已記錄課堂歷史</h2>
-                                <span id="recordCountBadge" class="bg-slate-100 text-slate-600 text-xs px-2.5 py-0.5 rounded-full font-semibold">0 筆</span>
-                            </div>
-
-                            <!-- Filter Controls -->
-                            <div class="flex items-center space-x-2 w-full sm:w-auto">
-                                <select id="filterGrade" onchange="renderRecords()" class="text-xs rounded-lg border-slate-200 bg-slate-50 py-1.5 px-2.5 focus:ring-brand-500">
-                                    <option value="ALL">所有年級</option>
-                                    <option value="S1">中一 (S1)</option>
-                                    <option value="S2">中二 (S2)</option>
-                                    <option value="S3">中三 (S3)</option>
-                                    <option value="S4">中四 (S4)</option>
-                                    <option value="S5">中五 (S5)</option>
-                                    <option value="S6">中六 (S6)</option>
-                                </select>
-                                <input type="text" id="searchKeyword" onkeyup="renderRecords()" placeholder="搜尋班別/課題..." class="text-xs rounded-lg border-slate-200 bg-slate-50 py-1.5 px-2.5 w-32 sm:w-40 focus:ring-brand-500">
-                            </div>
-                        </div>
-
-                        <!-- Records List Display -->
-                        <div id="recordsContainer" class="space-y-3 custom-scrollbar max-h-[600px] overflow-y-auto pr-1">
-                            <!-- Dynamic Records Cards Inserted Here -->
-                        </div>
-                    </section>
-                </div>
-            </div>
-
-            <!-- RIGHT COLUMN (4 cols): Cheer Mascot & To-Do List -->
-            <div class="lg:col-span-4 space-y-5 lg:space-y-6 sidebar-column flex flex-col justify-between">
-                
-                <!-- To-Do List Widget (待辦事項專區 - 移至上方) -->
-                <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-5">
-                    <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
-                        <div class="flex items-center space-x-2">
-                            <span class="w-2 h-5 bg-amber-500 rounded-full inline-block"></span>
-                            <h3 class="text-base font-bold text-slate-800">待辦事項 To-Do</h3>
-                        </div>
-                        <span id="todoProgress" class="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full">0/0 完成</span>
-                    </div>
-
-                    <!-- Add To-Do Form -->
-                    <div class="space-y-2 mb-4">
-                        <div class="flex space-x-2">
-                            <input type="text" id="todoInput" placeholder="輸入需處理的工作..." onkeypress="handleTodoKeyPress(event)" class="flex-1 text-xs sm:text-sm rounded-xl border-slate-300 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500">
-                            <button onclick="addTodoItem()" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 active:bg-black text-white text-xs font-semibold rounded-xl transition shrink-0 flex items-center space-x-1">
-                                <i class="fa-solid fa-plus"></i>
-                                <span>新增</span>
-                            </button>
-                        </div>
-                        <div class="flex items-center justify-between text-xs text-slate-500 px-0.5">
-                            <div class="flex items-center space-x-2">
-                                <span class="font-medium">標籤:</span>
-                                <select id="todoTag" class="text-[11px] rounded-lg border-slate-200 py-0.5 px-1.5 bg-slate-50">
-                                    <option value="批改">批改作業</option>
-                                    <option value="備課">備課/簡報</option>
-                                    <option value="行政">學校行政</option>
-                                    <option value="家長">家長聯絡</option>
-                                    <option value="雜務">其他雜務</option>
-                                </select>
-                            </div>
-                            <div class="flex items-center space-x-1">
-                                <select id="todoPriority" class="text-[11px] rounded-lg border-slate-200 py-0.5 px-1.5 bg-slate-50 text-amber-700 font-medium">
-                                    <option value="normal">普通級</option>
-                                    <option value="high">🔥 緊急</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- To-Do Items List -->
-                    <div id="todoContainer" class="space-y-2 max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
-                        <!-- To-do items rendered here -->
-                    </div>
-                </section>
-
-                <!-- Mascot Cheer Widget (小精靈打氣站 - 欄位置底) -->
-                <section class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-2xl shadow-md text-white p-4 sm:p-5 relative overflow-hidden mt-auto">
-                    <!-- Background Decorative Shapes -->
-                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
-                    <div class="absolute top-2 right-2 text-white/20 text-4xl sparkle-effect">✨</div>
-
-                    <div class="flex items-start space-x-3.5 relative z-10">
-                        <!-- Mascot Avatar -->
-                        <div onclick="triggerMascotCheer()" class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-3xl sm:text-4xl shadow-inner cursor-pointer animate-mascot shrink-0 hover:scale-105 transition-transform" title="點擊小精靈聽打氣說話！">
-                            🧙‍♂️
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-xs font-semibold px-2 py-0.5 bg-white/20 rounded-full text-pink-100">加油小精靈</span>
-                                <span class="text-[10px] text-indigo-200">點擊小精靈補充能量</span>
-                            </div>
-                            <p id="mascotQuoteText" class="text-xs sm:text-sm font-medium mt-1.5 leading-relaxed text-white">
-                                「老師，你今天已經做得好出色了！加油，捱下去，每一個學生的進步都有你的汗水！」
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="mt-3.5 pt-2.5 border-t border-white/15 flex justify-between items-center text-xs">
-                        <span id="mascotMoodBadge" class="text-pink-100 font-medium"><i class="fa-solid fa-heart mr-1 text-pink-300"></i>為老師元氣加滿</span>
-                        <button onclick="triggerMascotCheer()" class="px-3 py-1 bg-white/20 hover:bg-white/30 active:bg-white/40 rounded-lg font-semibold transition text-[11px] border border-white/20 backdrop-blur-sm">
-                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>打氣一下！
-                        </button>
-                    </div>
-                </section>
-            </div>
-        </div>
-    </main>
-
-    <!-- Settings & GAS Modal -->
-    <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden animate-fade-in">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
-            <div class="px-5 py-4 bg-slate-800 text-white flex justify-between items-center">
-                <h3 class="font-bold text-base flex items-center space-x-2">
-                    <i class="fa-solid fa-sliders text-brand-400"></i>
-                    <span>系統設定與 Google Sheet 雲端連結</span>
-                </h3>
-                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+        <!-- Tab Navigation & Quick Stats -->
+        <div class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-2 gap-3">
+            <div class="flex space-x-4 sm:space-x-6">
+                <button id="tabBtnNew" onclick="switchTab('new')" class="pb-2 border-b-2 border-brand-600 text-brand-600 font-bold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>新增課堂紀錄</span>
+                </button>
+                <button id="tabBtnHistory" onclick="switchTab('history')" class="pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]">
+                    <i class="fa-solid fa-rectangle-list"></i>
+                    <span>課堂歷史與統計 (<span id="recordCountBadge">0</span>)</span>
                 </button>
             </div>
-            
-            <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar text-xs sm:text-sm text-slate-700">
-                <!-- Google Sheet URL Configuration -->
-                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                    <label class="block font-bold text-slate-800 mb-1">
-                        <i class="fa-solid fa-file-excel text-emerald-600 mr-1.5"></i>Google Sheet 網址 (開啓表格用)
-                    </label>
-                    <input type="url" id="sheetUrlInput" placeholder="https://docs.google.com/spreadsheets/d/..." class="w-full text-xs rounded-lg border-slate-300 bg-white p-2 text-slate-800">
-                    <p class="text-[11px] text-slate-500 mt-1">設置後，點擊頂部「打開 Google Sheet」會直接開啓此試算表。</p>
-                </div>
 
-                <!-- GAS Web App Deployment URL -->
-                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                    <label class="block font-bold text-slate-800 mb-1">
-                        <i class="fa-solid fa-cloud-arrow-up text-brand-600 mr-1.5"></i>Google Apps Script (GAS) API 網址
-                    </label>
-                    <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-xs rounded-lg border-slate-300 bg-white p-2 text-slate-800">
-                    <p class="text-[11px] text-slate-500 mt-1">留空時，系統會採用瀏覽器 LocalStorage 儲存資料。</p>
-                </div>
+            <div class="text-[11px] sm:text-xs text-slate-500 flex flex-wrap items-center gap-2 sm:gap-4">
+                <span title="包含班別：1B"><i class="fa-solid fa-atom text-purple-600 mr-1"></i>STEAM (1B)</span>
+                <span title="包含班別：1C, 2A, 3B"><i class="fa-solid fa-desktop text-green-600 mr-1"></i>CL (1C, 2A, 3B)</span>
+                <span title="包含班別：F4, F6"><i class="fa-solid fa-code text-blue-600 mr-1"></i>ICT (F4, F6)</span>
+            </div>
+        </div>
 
-                <!-- Backup & Restore Data -->
-                <div class="border-t border-slate-200 pt-3">
-                    <h4 class="font-bold text-slate-800 mb-2">資料備份與匯出</h4>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="exportDataJSON()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 text-xs font-semibold transition border border-slate-300">
-                            <i class="fa-solid fa-download mr-1"></i>備份 JSON
+        <!-- Notification Toast Container -->
+        <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+        <!-- ================= TAB 1: NEW RECORD FORM ================= -->
+        <section id="tabNew" class="animate-fade-in space-y-6">
+            <form id="lessonForm" onsubmit="handleFormSubmit(event)" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-7 space-y-6">
+                
+                <!-- Basic Info Row -->
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span class="flex items-center space-x-2">
+                            <i class="fa-regular fa-calendar-check text-brand-600"></i>
+                            <span>基本課堂資訊</span>
+                        </span>
+                        <button type="button" onclick="setTodayDate()" class="text-xs text-brand-600 hover:text-brand-700 font-medium no-print">
+                            <i class="fa-solid fa-clock"></i> 帶入今天
                         </button>
-                        <button onclick="clearAllData()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-semibold transition border border-red-200">
-                            <i class="fa-solid fa-trash mr-1"></i>清除所有本機紀錄
-                        </button>
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                        <!-- Date -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">課堂日期 *</label>
+                            <input type="date" id="inputDate" required class="w-full px-3 py-2.5 sm:py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-base sm:text-sm">
+                        </div>
+
+                        <!-- Class Selection -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">班別 (Class) *</label>
+                            <div class="relative">
+                                <select id="inputClass" onchange="handleClassChange()" required class="w-full px-3 py-2.5 sm:py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-base sm:text-sm appearance-none bg-white font-medium">
+                                    <option value="" disabled selected>請選擇班別...</option>
+                                    <option value="1B">1B — (STEAM 專屬)</option>
+                                    <option value="1C">1C — (CL 電腦認知科)</option>
+                                    <option value="2A">2A — (CL 電腦認知科)</option>
+                                    <option value="3B">3B — (CL 電腦認知科)</option>
+                                    <option value="F4">F4 — (ICT 高中資訊科技)</option>
+                                    <option value="F6">F6 — (ICT 高中資訊科技)</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
+                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Subject & Topic Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">對應科目 (Subject) *</label>
+                        <select id="inputSubject" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 text-sm bg-white font-semibold">
+                            <option value="STEAM">STEAM 科 (1B 專屬)</option>
+                            <option value="CL">CL 電腦認知科 (1C, 2A, 3B)</option>
+                            <option value="ICT">ICT 資訊及通訊科技 (F4, F6)</option>
+                            <option value="其他">其他科目</option>
+                        </select>
+                        <p class="text-[11px] text-slate-400 mt-1" id="subjectHintText">選擇班別後系統將會自動套用預設科目。</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">課堂課題 / 主題名稱 *</label>
+                        <input type="text" id="inputTopic" placeholder="例如：Micro:bit 傳感器應用 / Python 迴圈結構 / 網路通訊協定" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 text-sm">
+                    </div>
+                </div>
+
+                <!-- ================= DYNAMIC SPECIALIZED CURRICULUM BLOCKS ================= -->
+
+                <!-- BLOCK A: 1B STEAM Block -->
+                <div id="blockSteam" class="hidden transition-all duration-300">
+                    <div class="bg-gradient-to-r from-steam-50 via-purple-50 to-indigo-50 p-5 rounded-xl border border-purple-200 space-y-4 shadow-sm">
+                        <div class="flex items-center justify-between border-b border-purple-200/60 pb-3">
+                            <div class="flex items-center space-x-2 text-steam-700 font-bold text-sm">
+                                <i class="fa-solid fa-atom text-steam-600 text-lg"></i>
+                                <span>1B 班 STEAM 專屬教學紀錄</span>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-steam-100 text-steam-700 border border-steam-200">1B ONLY</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">STEAM 模組主題</label>
+                                <select id="steamModule" class="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-steam-500 text-sm bg-white">
+                                    <option value="MakeCode / Micro:bit 編程">Micro:bit / 嵌入式編程</option>
+                                    <option value="機器人與自動化 (Robotics)">機器人與自動化控制</option>
+                                    <option value="3D 建模與列印 (3D Printing)">3D 建模與列印製作</option>
+                                    <option value="智能家居與 IoT 傳感器">智能家居與 IoT 傳感器</option>
+                                    <option value="物理實驗與可再生能源">物理實驗與再生能源</option>
+                                    <option value="跨學科 PBL 專題實作">跨學科 PBL 專題實作</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">使用教具 / 硬體設備</label>
+                                <input type="text" id="steamEquipment" placeholder="例：Micro:bit V2, 伺服馬達, 超音波傳感器" class="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-steam-500 text-sm bg-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">核心技能 / 學習目標</label>
+                                <input type="text" id="steamSkill" placeholder="例：條件邏輯判斷、電路串聯與除錯" class="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-steam-500 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">小組實作進度 / 技術除錯 (Debugging) 備註</label>
+                            <textarea id="steamGroupNotes" rows="2" placeholder="記錄學生動手做進度、各小組硬體運作情況或需改進之處..." class="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-steam-500 text-sm bg-white"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BLOCK B: 1C, 2A, 3B CL (Computer Literacy) Block -->
+                <div id="blockCL" class="hidden transition-all duration-300">
+                    <div class="bg-gradient-to-r from-cl-50 via-emerald-50 to-teal-50 p-5 rounded-xl border border-cl-200 space-y-4 shadow-sm">
+                        <div class="flex items-center justify-between border-b border-cl-200/60 pb-3">
+                            <div class="flex items-center space-x-2 text-cl-700 font-bold text-sm">
+                                <i class="fa-solid fa-desktop text-cl-600 text-lg"></i>
+                                <span>初中 CL (電腦認知科) 專屬教學紀錄</span>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cl-100 text-cl-700 border border-cl-200">1C / 2A / 3B</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">CL 單元類別</label>
+                                <select id="clModule" class="w-full px-3 py-2 border border-cl-200 rounded-lg focus:ring-2 focus:ring-cl-500 text-sm bg-white">
+                                    <option value="Scratch 積木圖像化程式編寫">Scratch 圖像化程式設計</option>
+                                    <option value="Python 基礎語法與邏輯">Python 基礎程式設計</option>
+                                    <option value="App Inventor 行動應用程式">App Inventor 行動應用設計</option>
+                                    <option value="試算表與資料處理 (Excel/Sheets)">試算表數據處理 (Excel/Sheets)</option>
+                                    <option value="簡報技巧與多媒體剪輯">多媒體與簡報設計</option>
+                                    <option value="網路安全與資訊素養 (Cyber Safety)">網路安全與資訊素養</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">軟體/平台/教材</label>
+                                <input type="text" id="clSoftware" placeholder="例：Scratch 3.0, Google Classroom, PyCharm" class="w-full px-3 py-2 border border-cl-200 rounded-lg focus:ring-2 focus:ring-cl-500 text-sm bg-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">電腦室上機實作率 (%)</label>
+                                <input type="text" id="clHandsOn" placeholder="例：70% 課堂上機演練" class="w-full px-3 py-2 border border-cl-200 rounded-lg focus:ring-2 focus:ring-cl-500 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">學生上機常見問題與課堂觀測</label>
+                            <textarea id="clNotes" rows="2" placeholder="記錄學生打字速度、檔案儲存問題或軟體操作理解程度..." class="w-full px-3 py-2 border border-cl-200 rounded-lg focus:ring-2 focus:ring-cl-500 text-sm bg-white"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BLOCK C: F4, F6 ICT (Senior Secondary) Block -->
+                <div id="blockICT" class="hidden transition-all duration-300">
+                    <div class="bg-gradient-to-r from-ict-50 via-blue-50 to-indigo-50 p-5 rounded-xl border border-ict-200 space-y-4 shadow-sm">
+                        <div class="flex items-center justify-between border-b border-ict-200/60 pb-3">
+                            <div class="flex items-center space-x-2 text-ict-700 font-bold text-sm">
+                                <i class="fa-solid fa-code text-ict-600 text-lg"></i>
+                                <span>高中 ICT (資訊及通訊科技) DSE 專屬紀錄</span>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-ict-100 text-ict-700 border border-ict-200">F4 / F6 (DSE)</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">DSE 範疇 (Module)</label>
+                                <select id="ictModule" class="w-full px-3 py-2 border border-ict-200 rounded-lg focus:ring-2 focus:ring-ict-500 text-sm bg-white">
+                                    <option value="C: 算法與程式編寫 (Algorithm & C)">範疇 C: 演算法與 C 語言編寫</option>
+                                    <option value="A: 資訊處理 (Data & Database)">範疇 A: 資訊處理與 SQL 資料庫</option>
+                                    <option value="B: 電腦系統與網絡 (System & Networking)">範疇 B: 電腦系統架構與網絡</option>
+                                    <option value="D: 社會與倫理議題 (Social Issues)">範疇 D: 資訊科技社會議題</option>
+                                    <option value="DSE 歷屆試題操練 (Past Paper)">HKDSE 試題操練與題型解析</option>
+                                    <option value="SBA 校本評核輔導">SBA 校本評核專案輔導</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">試題/章節進度</label>
+                                <input type="text" id="ictExamFocus" placeholder="例：2021 Paper 1B Q3 / SQL Join 查詢" class="w-full px-3 py-2 border border-ict-200 rounded-lg focus:ring-2 focus:ring-ict-500 text-sm bg-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">程式語言 / 數據庫工具</label>
+                                <input type="text" id="ictTool" placeholder="例：C++ / Python / MS Access / SQL" class="w-full px-3 py-2 border border-ict-200 rounded-lg focus:ring-2 focus:ring-ict-500 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">高中學生學習難點與升學複習備註</label>
+                            <textarea id="ictNotes" rows="2" placeholder="記錄學生在邏輯追蹤 (Trace Table)、概念迷思或 SBA 實作遇到的瓶頸..." class="w-full px-3 py-2 border border-ict-200 rounded-lg focus:ring-2 focus:ring-ict-500 text-sm bg-white"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- General Teaching Details / Summary -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">通用課堂細節與教學進度摘要</label>
+                    <textarea id="inputDetails" rows="3" placeholder="簡述今日整體教學進度、學生秩序與課堂互動表現..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 text-sm"></textarea>
+                </div>
+
+                <!-- Homework Assignment Section -->
+                <div class="border-t border-slate-100 pt-4 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center space-x-2.5 cursor-pointer select-none">
+                            <input type="checkbox" id="hasHomeworkToggle" onchange="toggleHomeworkFields()" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
+                            <span class="text-sm font-bold text-slate-800">今日有佈置功課 / 作業 (Assign Homework)</span>
+                        </label>
+                    </div>
+
+                    <!-- Dynamic Homework Inputs -->
+                    <div id="homeworkFields" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4 bg-amber-50/50 p-4 rounded-xl border border-amber-200/70">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-semibold text-amber-900 uppercase mb-1">功課名稱 / 作業內容說明 *</label>
+                            <input type="text" id="hwTitle" placeholder="例如：CL 工作紙 P.12-14 / STEAM 專案設計草稿 / ICT Past Paper 2020 Q1-4" class="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-amber-900 uppercase mb-1">預計繳交日期 (Due Date) *</label>
+                            <input type="date" id="hwDueDate" class="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Submit Buttons -->
+                <div class="flex items-center justify-end space-x-3 border-t border-slate-100 pt-4">
+                    <button type="button" onclick="resetForm()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 text-xs font-medium hover:bg-slate-50 transition">
+                        重設表單
+                    </button>
+                    <button type="submit" id="btnSubmit" class="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold shadow-md shadow-brand-500/20 flex items-center space-x-2 transition">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>儲存並同步至 Google Sheets</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ================= TAB 2: HISTORY LIST & FILTER ================= -->
+        <section id="tabHistory" class="hidden animate-fade-in space-y-4">
+            
+            <!-- Filters Bar -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                    <!-- Class Filter -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-semibold text-slate-500 uppercase">班別:</span>
+                        <select id="filterClass" onchange="renderHistoryTable()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:ring-brand-500 font-medium">
+                            <option value="ALL">全部班別</option>
+                            <option value="1B">1B (STEAM)</option>
+                            <option value="1C">1C (CL)</option>
+                            <option value="2A">2A (CL)</option>
+                            <option value="3B">3B (CL)</option>
+                            <option value="F4">F4 (ICT)</option>
+                            <option value="F6">F6 (ICT)</option>
+                        </select>
+                    </div>
+
+                    <!-- Subject Filter -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-semibold text-slate-500 uppercase">科目:</span>
+                        <select id="filterSubject" onchange="renderHistoryTable()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:ring-brand-500 font-medium">
+                            <option value="ALL">全部科目</option>
+                            <option value="STEAM">STEAM</option>
+                            <option value="CL">CL 電腦認知</option>
+                            <option value="ICT">ICT 資訊科技</option>
+                        </select>
+                    </div>
+
+                    <!-- Homework Filter -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-semibold text-slate-500 uppercase">功課狀態:</span>
+                        <select id="filterHw" onchange="renderHistoryTable()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:ring-brand-500 font-medium">
+                            <option value="ALL">不限</option>
+                            <option value="YES">有功課</option>
+                            <option value="NO">無功課</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 ml-auto">
+                    <button onclick="window.print()" class="px-3 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg transition flex items-center space-x-1 min-h-[38px]">
+                        <i class="fa-solid fa-print text-slate-600"></i>
+                        <span>列印 / 存為 PDF</span>
+                    </button>
+                    <button onclick="exportCSV()" class="px-3 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg transition flex items-center space-x-1 min-h-[38px]">
+                        <i class="fa-solid fa-file-csv text-emerald-600"></i>
+                        <span>匯出 CSV</span>
+                    </button>
+                    <button onclick="fetchFromGAS()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition flex items-center space-x-1 min-h-[38px]">
+                        <i class="fa-solid fa-arrows-rotate text-slate-500"></i>
+                        <span>測試連線</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2">
-                <button onclick="closeSettingsModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">取消</button>
-                <button onclick="saveSettings()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow transition">儲存設定</button>
+            <!-- Records List Container -->
+            <div id="historyListContainer" class="space-y-3">
+                <!-- Rendered dynamically via JavaScript -->
             </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- Toast Notification Overlay -->
-    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+    </main>
 
-    <!-- Floating Cheer Mascot (動態跟隨滑鼠移動) -->
-    <div id="floatingMascot" class="fixed top-0 left-0 z-40 select-none cursor-pointer flex flex-col items-center group pointer-events-auto" style="transform: translate3d(calc(100vw - 80px), calc(100vh - 80px), 0); will-change: transform;" onclick="triggerMascotCheer()">
-        <!-- Mascot Speech Bubble -->
-        <div id="mascotBubble" class="mb-2 px-3 py-1.5 bg-slate-900/90 text-white text-xs font-medium rounded-xl shadow-xl border border-purple-400/40 whitespace-nowrap opacity-0 scale-90 transition-all duration-300 pointer-events-none relative flex items-center space-x-1.5 backdrop-blur-md max-w-xs">
-            <span class="text-amber-300 animate-pulse">✨</span>
-            <span id="mascotBubbleText">老師加油！點我聽打氣話～</span>
-            <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900/90 rotate-45 border-r border-b border-purple-400/40"></div>
-        </div>
-        <!-- Mascot Avatar -->
-        <div class="relative">
-            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-pink-500 shadow-xl border-2 border-white/90 flex items-center justify-center text-2xl sm:text-3xl animate-mascot hover:scale-110 active:scale-95 transition-transform">
-                🧙‍♂️
+    <!-- Settings & GAS Code Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl animate-fade-in overflow-hidden my-auto">
+            
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-cloud-check text-brand-600 text-lg sm:text-xl"></i>
+                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">Google Sheets (GAS) 後端串接設定</h3>
+                </div>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg text-lg min-h-[40px] flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <!-- Status Dot -->
-            <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-pink-500 border-2 border-white"></span>
-            </span>
+
+            <!-- Modal Content (Scrollable) -->
+            <div class="p-6 overflow-y-auto custom-scrollbar space-y-6 text-xs text-slate-600">
+                
+                <!-- Web App URL Setting -->
+                <div class="bg-brand-50 p-4 rounded-xl border border-brand-100 space-y-2">
+                    <label class="block font-bold text-brand-700 text-xs uppercase">Google Apps Script Web App URL</label>
+                    <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-brand-500 bg-white">
+                    <p class="text-[11px] text-slate-500">已內建預設 Google Sheet 雲端連結，在任何裝置開啟皆可自動連線！如日後需要更換試算表，可於此處更新。</p>
+                </div>
+
+                <!-- Embed Height Tip -->
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-800 flex items-start space-x-2">
+                    <i class="fa-solid fa-circle-info text-amber-600 mt-0.5"></i>
+                    <div>
+                        <strong>協作平台嵌入建議：</strong>若將此頁面嵌入 Google Sites 或學校協作平台，建議將嵌入區塊的高度設定為 <strong>850px 以上</strong>，即可獲得完整視圖並避免出現雙重滾動條 (Double Scrollbars)。
+                    </div>
+                </div>
+
+                <!-- Tutorial -->
+                <div class="space-y-3">
+                    <h4 class="font-bold text-slate-800 text-sm flex items-center space-x-1.5">
+                        <i class="fa-solid fa-list-ol text-brand-600"></i>
+                        <span>3 分鐘建置 Google Sheets 自動紀錄檔步驟：</span>
+                    </h4>
+
+                    <ol class="list-decimal list-inside space-y-2 text-slate-600 leading-relaxed pl-1">
+                        <li>開啟一個全新的 <a href="https://sheets.new" target="_blank" class="text-brand-600 font-bold underline">Google 試算表 (Google Sheets)</a>。</li>
+                        <li>點擊上方選單 <strong>「擴充功能 (Extensions)」 &gt; 「Apps Script」</strong>。</li>
+                        <li>將下方區塊的程式碼完全覆蓋貼入編輯器中，點選儲存。</li>
+                        <li>點擊右上角 <strong>「部署 (Deploy)」 &gt; 「新建部署 (New deployment)」</strong>。</li>
+                        <li>種類選擇 <strong>「Web 應用程式 (Web app)」</strong>，存取權限設為 <strong>「所有人 (Anyone)」</strong>（必須設定為所有人）。</li>
+                        <li>複製部署完成後的 <strong>Web App URL</strong> 貼回本系統上方點選「儲存設定」即可！</li>
+                    </ol>
+                </div>
+
+                <!-- Code Copy Block -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-700">Google Apps Script (GAS) 完整程式碼：</span>
+                        <button onclick="copyGasScript()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-[11px] font-medium flex items-center space-x-1 transition">
+                            <i class="fa-regular fa-copy"></i>
+                            <span>複製程式碼</span>
+                        </button>
+                    </div>
+                    <pre id="gasCodeBlock" class="bg-slate-900 text-slate-100 p-4 rounded-xl font-mono text-[11px] overflow-x-auto custom-scrollbar select-all leading-relaxed">
+function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    
+    // 若試算表為空，自動建立表頭標題
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow([
+        "紀錄時間", "課堂日期", "班別", "科目", "課題名稱", 
+        "課堂細節摘要", "是否有功課", "功課名稱", "繳交日期", 
+        "專屬模組/範疇", "教具/軟體/工具", "技能/指標/實作率", "專屬備註/學習難點"
+      ]);
+    }
+
+    var data = JSON.parse(e.postData.contents);
+    
+    // 根據班別提取專屬欄位
+    var moduleVal = data.steamModule || data.clModule || data.ictModule || "";
+    var toolVal = data.steamEquipment || data.clSoftware || data.ictExamFocus || "";
+    var metricVal = data.steamSkill || data.clHandsOn || data.ictTool || "";
+    var notesVal = data.steamGroupNotes || data.clNotes || data.ictNotes || "";
+
+    sheet.appendRow([
+      new Date(),
+      data.date || "",
+      data.className || "",
+      data.subject || "",
+      data.topic || "",
+      data.details || "",
+      data.hasHomework ? "是" : "否",
+      data.hwTitle || "",
+      data.hwDueDate || "",
+      moduleVal,
+      toolVal,
+      metricVal,
+      notesVal
+    ]);
+
+    return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+</pre>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end space-x-3">
+                <button onclick="closeSettingsModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 text-xs font-medium hover:bg-slate-100">
+                    關閉
+                </button>
+                <button onclick="saveGasSettings()" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold shadow">
+                    儲存設定
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Global State Variables
-        let classRecords = [];
-        let todoList = [];
-        let googleSheetUrl = localStorage.getItem('teacher_sheet_url') || '';
-        let gasEndpoint = localStorage.getItem('teacher_gas_endpoint') || '';
+        // System Default Google Apps Script Web App URL
+        const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwtXBYsOpQh4bPcJM3EbOrXFr50FMYGhubd3iMn5IOMM146epApkKGfT4zBeGlVc4E7oQ/exec';
 
-        // Topics definitions by Form Grade
-        const TOPICS_BY_FORM = {
-            'S1': [
-                'Scratch 圖像化程式設計',
-                '電腦基礎與硬件知識 (Computer Basics)',
-                'AI 人工智能初探與應用'
-            ],
-            'S2': [
-                'Photopea 影像處理與設計',
-                'App Inventor 流動應用程式編寫',
-                'AI 人工智能與機器學習應用'
-            ],
-            'S3': [
-                'Python 基礎編程入門',
-                '網頁設計與互聯網基礎 (HTML/CSS)',
-                'AI 人工智能倫理與進階應用'
-            ],
-            'S4': [
-                '必修單元 A：資訊處理 (Information Processing)',
-                '必修單元 B：電腦系統基礎 (Computer System Series)',
-                '必修單元 C：網際網路及其應用 (Internet & Applications)',
-                '必修單元 D：程式編寫概念 (Basic Programming Concepts)',
-                '必修單元 E：資訊科技的社會影響 (Social Implications)'
-            ],
-            'S5': [
-                '必修單元 D：程式編寫概念 (Basic Programming Concepts)',
-                '選修單元 A：資料庫 (Database Series)',
-                '選修單元 B：數據通訊及網絡 (Data Communications & Networking)'
-            ],
-            'S6': [
-                'DSE ICT 歷屆試題精讀與溫習',
-                '選修單元 A：資料庫 (Database Series) - 復習與實作',
-                '選修單元 B：數據通訊及網絡 (Data Communications & Networking) - 復習與實作',
-                'SBA 校本評核及模擬考試 (Mock Exam)'
-            ]
+        // System State
+        let appState = {
+            records: [],
+            gasUrl: localStorage.getItem('teacher_app_gas_url') || DEFAULT_GAS_URL,
+            activeTab: 'new'
         };
 
-        // Mascot Cheer Quotes List
-        const MASCOT_QUOTES = [
-            "老師，你今天已經做得好出色了！加油，捱下去！",
-            "每一個學生的進步都有你的汗水，辛苦你了！",
-            "休息一下，喝口水，繼續為學生注入能量！",
-            "教學路漫漫，莫忘初心，你做得非常棒！",
-            "今日的事今日畢，做唔晒就聽日再做，照顧好自己！",
-            "遇到難教嘅地方唔好灰心，小精靈陪住你！",
-            "捱多一陣就放假啦！加油老師！",
-            "學生有你咁有心嘅老師，真係好幸運！",
-            "堅持住！你嘅付出一定會有成果！"
-        ];
-
-        // Mouse Smooth Follow Logic
-        let mouseX = window.innerWidth - 90;
-        let mouseY = window.innerHeight - 90;
-        let mascotX = mouseX;
-        let mascotY = mouseY;
-        let isMouseActive = false;
-
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX + 20;
-            mouseY = e.clientY + 20;
-
-            // Edge collision check
-            if (mouseX + 60 > window.innerWidth) mouseX = e.clientX - 70;
-            if (mouseY + 70 > window.innerHeight) mouseY = e.clientY - 80;
-
-            isMouseActive = true;
-        });
-
-        document.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0) {
-                mouseX = e.touches[0].clientX + 15;
-                mouseY = e.touches[0].clientY + 15;
-                isMouseActive = true;
-            }
-        }, { passive: true });
-
-        function animateMascotFollow() {
-            if (isMouseActive) {
-                mascotX += (mouseX - mascotX) * 0.12;
-                mascotY += (mouseY - mascotY) * 0.12;
-                const elem = document.getElementById('floatingMascot');
-                if (elem) {
-                    elem.style.transform = `translate3d(${mascotX}px, ${mascotY}px, 0)`;
+        // Notify parent iframe (Google Sites / Host LMS) of height changes
+        function notifyParentHeight() {
+            try {
+                if (window.parent && window.parent !== window) {
+                    const bodyHeight = document.body.scrollHeight;
+                    window.parent.postMessage({ type: 'RESIZE_IFRAME', height: bodyHeight }, '*');
                 }
-            }
-            requestAnimationFrame(animateMascotFollow);
-        }
-
-        let bubbleTimer = null;
-
-        // Display cheer bubble over mascot
-        function showMascotBubble(msg) {
-            const bubble = document.getElementById('mascotBubble');
-            const bubbleText = document.getElementById('mascotBubbleText');
-            if (bubble && bubbleText) {
-                bubbleText.innerText = msg;
-                bubble.classList.remove('opacity-0', 'scale-90');
-                bubble.classList.add('opacity-100', 'scale-100');
-
-                if (bubbleTimer) clearTimeout(bubbleTimer);
-                bubbleTimer = setTimeout(() => {
-                    bubble.classList.remove('opacity-100', 'scale-100');
-                    bubble.classList.add('opacity-0', 'scale-90');
-                }, 4000);
+            } catch (e) {
+                // Ignore cross-origin error if any
             }
         }
 
-        // Dynamically update topic select options according to selected form grade
-        function updateTopicsByForm() {
-            const grade = document.getElementById('formGrade').value;
-            const topicSelect = document.getElementById('classTopic');
-            const curriculumBadge = document.getElementById('curriculumBadge');
+        // Dynamic Block Switching with height recalculation
+        function handleClassChange() {
+            const classVal = document.getElementById('inputClass').value;
+            const subjectSelect = document.getElementById('inputSubject');
+            const hintText = document.getElementById('subjectHintText');
 
-            if (['S4', 'S5', 'S6'].includes(grade)) {
-                curriculumBadge.innerText = 'DSE ICT 課程';
-                curriculumBadge.className = 'text-[11px] text-brand-600 bg-brand-50 font-medium px-2 py-0.5 rounded-full';
+            const blockSteam = document.getElementById('blockSteam');
+            const blockCL = document.getElementById('blockCL');
+            const blockICT = document.getElementById('blockICT');
+
+            // Reset blocks
+            blockSteam.classList.add('hidden');
+            blockCL.classList.add('hidden');
+            blockICT.classList.add('hidden');
+
+            // Apply specific class rules
+            if (classVal === '1B') {
+                subjectSelect.value = 'STEAM';
+                blockSteam.classList.remove('hidden');
+                hintText.innerText = "已自動套用：1B 專屬 STEAM 科目區塊。";
+                showToast('已切換至 1B 班，啟用 STEAM 專屬紀錄區塊', 'purple');
+            } else if (['1C', '2A', '3B'].includes(classVal)) {
+                subjectSelect.value = 'CL';
+                blockCL.classList.remove('hidden');
+                hintText.innerText = `已自動套用：${classVal} 初中 CL (電腦認知科) 區塊。`;
+                showToast(`已切換至 ${classVal} 班，啟用 CL 電腦認知科紀錄區塊`, 'green');
+            } else if (['F4', 'F6'].includes(classVal)) {
+                subjectSelect.value = 'ICT';
+                blockICT.classList.remove('hidden');
+                hintText.innerText = `已自動套用：${classVal} 高中 ICT 資訊科技區塊。`;
+                showToast(`已切換至 ${classVal} 班，啟用 ICT 資訊科技紀錄區塊`, 'blue');
             } else {
-                curriculumBadge.innerText = '初中電腦科課程';
-                curriculumBadge.className = 'text-[11px] text-purple-600 bg-purple-50 font-medium px-2 py-0.5 rounded-full';
+                hintText.innerText = "選擇班別後系統將自動套用預設科目。";
             }
 
-            const topics = TOPICS_BY_FORM[grade] || [];
-            topicSelect.innerHTML = topics.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+            setTimeout(notifyParentHeight, 150);
         }
 
-        // Tab Navigation Switcher
+        // Toggle Homework Fields
+        function toggleHomeworkFields() {
+            const isChecked = document.getElementById('hasHomeworkToggle').checked;
+            const hwFields = document.getElementById('homeworkFields');
+            if (isChecked) {
+                hwFields.classList.remove('hidden');
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                document.getElementById('hwDueDate').valueAsDate = tomorrow;
+            } else {
+                hwFields.classList.add('hidden');
+            }
+            setTimeout(notifyParentHeight, 150);
+        }
+
+        // Tab Switcher
         function switchTab(tab) {
-            const tabAdd = document.getElementById('tabContentAdd');
-            const tabHistory = document.getElementById('tabContentHistory');
-            const btnAdd = document.getElementById('tabBtnAdd');
+            appState.activeTab = tab;
+            const tabNew = document.getElementById('tabNew');
+            const tabHistory = document.getElementById('tabHistory');
+            const btnNew = document.getElementById('tabBtnNew');
             const btnHistory = document.getElementById('tabBtnHistory');
 
-            if (tab === 'add') {
-                tabAdd.classList.remove('hidden');
+            if (tab === 'new') {
+                tabNew.classList.remove('hidden');
                 tabHistory.classList.add('hidden');
-                btnAdd.className = 'flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center justify-center space-x-2 bg-brand-600 text-white shadow-sm';
-                btnHistory.className = 'flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center justify-center space-x-2 text-slate-600 hover:bg-slate-100';
+                btnNew.className = "pb-2 border-b-2 border-brand-600 text-brand-600 font-bold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]";
+                btnHistory.className = "pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]";
             } else {
-                tabAdd.classList.add('hidden');
+                tabNew.classList.add('hidden');
                 tabHistory.classList.remove('hidden');
-                btnHistory.className = 'flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center justify-center space-x-2 bg-purple-600 text-white shadow-sm';
-                btnAdd.className = 'flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center justify-center space-x-2 text-slate-600 hover:bg-slate-100';
-            }
-        }
-
-        // Save New Class Record
-        function handleFormSubmit(e) {
-            e.preventDefault();
-
-            const record = {
-                id: 'REC_' + Date.now(),
-                timestamp: new Date().toISOString(),
-                dateStr: new Date().toLocaleDateString('zh-HK'),
-                grade: document.getElementById('formGrade').value,
-                className: document.getElementById('className').value.trim(),
-                period: document.getElementById('classPeriod').value.trim() || '常規課堂',
-                topic: document.getElementById('classTopic').value,
-                homework: document.getElementById('homeworkAssigned').value.trim(),
-                teachingNotes: document.getElementById('teachingNotes').value.trim(),
-                followUp: document.getElementById('followUpNotes').value.trim()
-            };
-
-            classRecords.unshift(record);
-            saveRecordsToStorage();
-            renderRecords();
-
-            // Reset optional inputs
-            document.getElementById('homeworkAssigned').value = '';
-            document.getElementById('teachingNotes').value = '';
-            document.getElementById('followUpNotes').value = '';
-
-            showToast('課堂紀錄已成功儲存！自動切換至歷史紀錄。', 'success');
-
-            // Switch to History Tab automatically after submit
-            switchTab('history');
-
-            // Mascot praise!
-            triggerMascotCheer("太棒了！又完成了一堂課的紀錄，辛苦老師了！加油！");
-        }
-
-        function loadClassRecords() {
-            const raw = localStorage.getItem('teacher_class_records');
-            if (raw) {
-                try {
-                    classRecords = JSON.parse(raw);
-                } catch (err) {
-                    classRecords = [];
-                }
-            } else {
-                // Mock sample initial record
-                classRecords = [
-                    {
-                        id: 'REC_SAMPLE_1',
-                        timestamp: new Date().toISOString(),
-                        dateStr: new Date().toLocaleDateString('zh-HK'),
-                        grade: 'S4',
-                        className: '4A ICT',
-                        period: '第 2-3 節',
-                        topic: '必修單元 D：程式編寫概念 (Basic Programming Concepts)',
-                        homework: '完成工作紙 Ex 4.1 Q1-Q5 (下週二交)',
-                        teachingNotes: '學生對 Array 陣列結構理解良好，需再加強 Loop 迭代之解題能力。',
-                        followUp: '下節準備演算法測驗簡報。'
-                    }
-                ];
-                saveRecordsToStorage();
-            }
-            renderRecords();
-        }
-
-        function saveRecordsToStorage() {
-            localStorage.setItem('teacher_class_records', JSON.stringify(classRecords));
-            
-            // If GAS endpoint is active, try background sync
-            if (gasEndpoint) {
-                syncToGasCloud();
-            }
-        }
-
-        function deleteRecord(id) {
-            if (confirm('確定要刪除這筆課堂紀錄嗎？')) {
-                classRecords = classRecords.filter(r => r.id !== id);
-                saveRecordsToStorage();
-                renderRecords();
-                showToast('紀錄已刪除', 'info');
-            }
-        }
-
-        function renderRecords() {
-            const container = document.getElementById('recordsContainer');
-            const filterG = document.getElementById('filterGrade').value;
-            const searchK = document.getElementById('searchKeyword').value.toLowerCase().trim();
-
-            let list = classRecords;
-
-            if (filterG !== 'ALL') {
-                list = list.filter(r => r.grade === filterG);
-            }
-            if (searchK) {
-                list = list.filter(r => 
-                    r.className.toLowerCase().includes(searchK) || 
-                    r.topic.toLowerCase().includes(searchK) ||
-                    (r.homework && r.homework.toLowerCase().includes(searchK))
-                );
+                btnHistory.className = "pb-2 border-b-2 border-brand-600 text-brand-600 font-bold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]";
+                btnNew.className = "pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]";
+                renderHistoryTable();
             }
 
-            document.getElementById('recordCountBadge').innerText = `${list.length} 筆`;
-            const tabBadge = document.getElementById('tabRecordCountBadge');
-            if (tabBadge) {
-                tabBadge.innerText = classRecords.length;
-            }
-
-            if (list.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-8 text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                        <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-300"></i>
-                        <p class="text-xs">暫無相關課堂紀錄</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = list.map(r => `
-                <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-sm hover:border-brand-200 transition">
-                    <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-2 mb-2.5">
-                        <div class="flex items-center space-x-2 flex-wrap">
-                            <span class="text-xs font-bold px-2.5 py-0.5 rounded-md ${getGradeBadgeStyle(r.grade)}">
-                                ${r.grade} - ${escapeHtml(r.className)}
-                            </span>
-                            <span class="text-xs text-slate-500 font-medium">
-                                <i class="fa-regular fa-clock mr-1"></i>${escapeHtml(r.period)}
-                            </span>
-                            <span class="text-[11px] text-slate-400">${r.dateStr}</span>
-                        </div>
-                        <button onclick="deleteRecord('${r.id}')" class="text-slate-400 hover:text-red-500 text-xs p-1 transition" title="刪除">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>
-
-                    <h4 class="text-xs sm:text-sm font-bold text-slate-800 mb-2 flex items-center">
-                        <i class="fa-solid fa-book-open text-brand-500 mr-1.5 shrink-0"></i>
-                        <span>${escapeHtml(r.topic)}</span>
-                    </h4>
-
-                    ${r.homework ? `
-                        <div class="bg-indigo-50/70 text-indigo-900 text-xs p-2 rounded-lg mb-2 border border-indigo-100">
-                            <span class="font-bold text-indigo-700 mr-1"><i class="fa-solid fa-pen-ruler mr-1"></i>功課：</span>
-                            ${escapeHtml(r.homework)}
-                        </div>
-                    ` : ''}
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 mt-2">
-                        ${r.teachingNotes ? `
-                            <div class="bg-slate-50 p-2 rounded-lg">
-                                <span class="font-semibold text-slate-700 block mb-0.5"><i class="fa-solid fa-comment-dots text-emerald-500 mr-1"></i>課堂備註：</span>
-                                <p class="text-slate-600 whitespace-pre-line">${escapeHtml(r.teachingNotes)}</p>
-                            </div>
-                        ` : ''}
-                        ${r.followUp ? `
-                            <div class="bg-slate-50 p-2 rounded-lg">
-                                <span class="font-semibold text-slate-700 block mb-0.5"><i class="fa-solid fa-flag text-amber-500 mr-1"></i>跟進事項：</span>
-                                <p class="text-slate-600 whitespace-pre-line">${escapeHtml(r.followUp)}</p>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `).join('');
+            setTimeout(notifyParentHeight, 150);
         }
 
-        function getGradeBadgeStyle(grade) {
-            switch(grade) {
-                case 'S1': return 'bg-emerald-100 text-emerald-800';
-                case 'S2': return 'bg-purple-100 text-purple-800';
-                case 'S3': return 'bg-amber-100 text-amber-800';
-                default: return 'bg-brand-100 text-brand-800';
-            }
-        }
+        // Resize Listener for iframe responsiveness
+        window.addEventListener('resize', notifyParentHeight);
 
-        // --- To-Do List Management ---
-        function loadTodoList() {
-            const raw = localStorage.getItem('teacher_todo_list');
-            if (raw) {
-                try {
-                    todoList = JSON.parse(raw);
-                } catch(e) {
-                    todoList = [];
-                }
-            } else {
-                todoList = [
-                    { id: 'TD_1', title: '預備 S4 DSE ICT 測驗卷', tag: '批改', priority: 'high', completed: false },
-                    { id: 'TD_2', title: '更新 S1 Scratch 專題課件', tag: '備課', priority: 'normal', completed: true },
-                    { id: 'TD_3', title: '上載 S2 App Inventor 簡報至 Google Classroom', tag: '行政', priority: 'normal', completed: false }
-                ];
-                saveTodoList();
-            }
-            renderTodoList();
-        }
-
-        function saveTodoList() {
-            localStorage.setItem('teacher_todo_list', JSON.stringify(todoList));
-        }
-
-        function handleTodoKeyPress(e) {
-            if (e.key === 'Enter') {
-                addTodoItem();
-            }
-        }
-
-        function addTodoItem() {
-            const input = document.getElementById('todoInput');
-            const title = input.value.trim();
-            if (!title) return;
-
-            const tag = document.getElementById('todoTag').value;
-            const priority = document.getElementById('todoPriority').value;
-
-            const newTodo = {
-                id: 'TD_' + Date.now(),
-                title: title,
-                tag: tag,
-                priority: priority,
-                completed: false
-            };
-
-            todoList.unshift(newTodo);
-            saveTodoList();
-            renderTodoList();
-            input.value = '';
-
-            showToast('已新增待辦事項', 'success');
-        }
-
-        function toggleTodoComplete(id) {
-            const item = todoList.find(t => t.id === id);
-            if (item) {
-                item.completed = !item.completed;
-                saveTodoList();
-                renderTodoList();
-
-                if (item.completed) {
-                    triggerMascotCheer("太讚了！順利清理了一項工作，繼續加油，捱下去！");
-                }
-            }
-        }
-
-        function deleteTodoItem(id) {
-            todoList = todoList.filter(t => t.id !== id);
-            saveTodoList();
-            renderTodoList();
-            showToast('待辦事項已移除', 'info');
-        }
-
-        function renderTodoList() {
-            const container = document.getElementById('todoContainer');
-            const completedCount = todoList.filter(t => t.completed).length;
-            
-            document.getElementById('todoProgress').innerText = `${completedCount}/${todoList.length} 完成`;
-
-            if (todoList.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-6 text-slate-400 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        目前沒有待辦事項，休息一下吧！
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = todoList.map(t => `
-                <div class="flex items-center justify-between p-2.5 rounded-xl border ${t.completed ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-slate-200 shadow-sm'} transition">
-                    <div class="flex items-center space-x-2.5 min-w-0 flex-1 mr-2">
-                        <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTodoComplete('${t.id}')" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer">
-                        <div class="min-w-0 flex-1">
-                            <div class="text-xs ${t.completed ? 'line-through text-slate-400' : 'text-slate-800 font-medium'} truncate">
-                                ${escapeHtml(t.title)}
-                            </div>
-                            <div class="flex items-center space-x-1.5 mt-0.5">
-                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">${t.tag}</span>
-                                ${t.priority === 'high' ? '<span class="text-[10px] text-red-600 font-bold">🔥 緊急</span>' : ''}
-                            </div>
-                        </div>
-                    </div>
-                    <button onclick="deleteTodoItem('${t.id}')" class="text-slate-300 hover:text-red-500 text-xs p-1 transition">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        // --- Mascot & Cheer Features ---
-        function triggerMascotCheer(customMsg) {
-            const quoteElem = document.getElementById('mascotQuoteText');
-            const msg = customMsg || MASCOT_QUOTES[Math.floor(Math.random() * MASCOT_QUOTES.length)];
-            
-            if (quoteElem) {
-                quoteElem.classList.add('opacity-0');
-                setTimeout(() => {
-                    quoteElem.innerText = `「${msg}」`;
-                    quoteElem.classList.remove('opacity-0');
-                }, 150);
-            }
-
-            // Show bubble above floating mascot
-            showMascotBubble(msg);
-
-            showToast('🧙‍♂️ 小精靈：' + msg, 'cheer');
-        }
-
-        // --- Open Google Sheet Feature ---
-        function openGoogleSheet() {
-            if (googleSheetUrl) {
-                window.open(googleSheetUrl, '_blank');
-            } else {
-                openSettingsModal();
-                showToast('請先填寫你的 Google Sheet 網址！', 'warning');
-            }
-        }
-
-        // --- Settings Modal Functions ---
+        // Settings Modal Handlers
         function openSettingsModal() {
             document.getElementById('settingsModal').classList.remove('hidden');
         }
@@ -922,123 +726,477 @@
             document.getElementById('settingsModal').classList.add('hidden');
         }
 
-        function saveSettings() {
-            gasEndpoint = document.getElementById('gasUrlInput').value.trim();
-            googleSheetUrl = document.getElementById('sheetUrlInput').value.trim();
+        // Quick date helper
+        function setTodayDate() {
+            document.getElementById('inputDate').valueAsDate = new Date();
+            showToast('已設為今日日期', 'blue');
+        }
 
-            localStorage.setItem('teacher_gas_endpoint', gasEndpoint);
-            localStorage.setItem('teacher_sheet_url', googleSheetUrl);
+        // Network status monitor for cross-platform robustness
+        function updateNetworkStatus() {
+            const netStatus = document.getElementById('networkStatus');
+            if (navigator.onLine) {
+                if (netStatus) netStatus.classList.remove('hidden');
+            } else {
+                if (netStatus) netStatus.classList.add('hidden');
+                showToast('⚠️ 目前處於離線狀態，資料將自動備份至本機存儲', 'amber');
+            }
+        }
 
-            updateGasBadgeStatus(Boolean(gasEndpoint));
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+
+        // Initialize Application
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('inputDate').valueAsDate = new Date();
+            
+            const savedRecords = localStorage.getItem('teacher_app_records');
+            if (savedRecords) {
+                try {
+                    appState.records = JSON.parse(savedRecords);
+                } catch (e) {
+                    appState.records = [];
+                }
+            }
+
+            if (appState.gasUrl) {
+                document.getElementById('gasUrlInput').value = appState.gasUrl;
+                updateGasBadgeStatus(true);
+            } else {
+                updateGasBadgeStatus(false);
+            }
+
+            updateNetworkStatus();
+            renderHistoryTable();
+            updateRecordCountBadge();
+            notifyParentHeight();
+        });
+
+        // Dynamic Subject & Special Block Switching based on Class Selection Rule
+        function handleClassChange() {
+            const classVal = document.getElementById('inputClass').value;
+            const subjectSelect = document.getElementById('inputSubject');
+            const hintText = document.getElementById('subjectHintText');
+
+            const blockSteam = document.getElementById('blockSteam');
+            const blockCL = document.getElementById('blockCL');
+            const blockICT = document.getElementById('blockICT');
+
+            // Reset blocks
+            blockSteam.classList.add('hidden');
+            blockCL.classList.add('hidden');
+            blockICT.classList.add('hidden');
+
+            // Apply specific class rules
+            if (classVal === '1B') {
+                // Rule 1: 1B -> STEAM
+                subjectSelect.value = 'STEAM';
+                blockSteam.classList.remove('hidden');
+                hintText.innerText = "已自動套用：1B 專屬 STEAM 科目區塊。";
+                showToast('已切換至 1B 班，啟用 STEAM 專屬紀錄區塊', 'purple');
+            } else if (['1C', '2A', '3B'].includes(classVal)) {
+                // Rule 2: 1C, 2A, 3B -> CL
+                subjectSelect.value = 'CL';
+                blockCL.classList.remove('hidden');
+                hintText.innerText = `已自動套用：${classVal} 初中 CL (電腦認知科) 區塊。`;
+                showToast(`已切換至 ${classVal} 班，啟用 CL 電腦認知科紀錄區塊`, 'green');
+            } else if (['F4', 'F6'].includes(classVal)) {
+                // Rule 3: F4, F6 -> ICT
+                subjectSelect.value = 'ICT';
+                blockICT.classList.remove('hidden');
+                hintText.innerText = `已自動套用：${classVal} 高中 ICT 資訊科技區塊。`;
+                showToast(`已切換至 ${classVal} 班，啟用 ICT 資訊科技紀錄區塊`, 'blue');
+            } else {
+                hintText.innerText = "選擇班別後系統將自動套用預設科目。";
+            }
+        }
+
+        // Toggle Homework Fields
+        function toggleHomeworkFields() {
+            const isChecked = document.getElementById('hasHomeworkToggle').checked;
+            const hwFields = document.getElementById('homeworkFields');
+            if (isChecked) {
+                hwFields.classList.remove('hidden');
+                // Auto set default due date to tomorrow
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                document.getElementById('hwDueDate').valueAsDate = tomorrow;
+            } else {
+                hwFields.classList.add('hidden');
+            }
+        }
+
+        // Form Submission
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            const submitBtn = document.getElementById('btnSubmit');
+            const originalBtnContent = submitBtn.innerHTML;
+
+            const selectedClass = document.getElementById('inputClass').value;
+            if (!selectedClass) {
+                showToast('請先選擇班別！', 'amber');
+                return;
+            }
+
+            // Build Payload
+            const formData = {
+                id: Date.now(),
+                createdAt: new Date().toISOString(),
+                date: document.getElementById('inputDate').value,
+                className: selectedClass,
+                subject: document.getElementById('inputSubject').value,
+                topic: document.getElementById('inputTopic').value,
+                details: document.getElementById('inputDetails').value,
+                hasHomework: document.getElementById('hasHomeworkToggle').checked,
+                hwTitle: document.getElementById('hasHomeworkToggle').checked ? document.getElementById('hwTitle').value : '',
+                hwDueDate: document.getElementById('hasHomeworkToggle').checked ? document.getElementById('hwDueDate').value : '',
+                
+                // Dynamic Fields according to Class category
+                steamModule: selectedClass === '1B' ? document.getElementById('steamModule').value : '',
+                steamEquipment: selectedClass === '1B' ? document.getElementById('steamEquipment').value : '',
+                steamSkill: selectedClass === '1B' ? document.getElementById('steamSkill').value : '',
+                steamGroupNotes: selectedClass === '1B' ? document.getElementById('steamGroupNotes').value : '',
+
+                clModule: ['1C', '2A', '3B'].includes(selectedClass) ? document.getElementById('clModule').value : '',
+                clSoftware: ['1C', '2A', '3B'].includes(selectedClass) ? document.getElementById('clSoftware').value : '',
+                clHandsOn: ['1C', '2A', '3B'].includes(selectedClass) ? document.getElementById('clHandsOn').value : '',
+                clNotes: ['1C', '2A', '3B'].includes(selectedClass) ? document.getElementById('clNotes').value : '',
+
+                ictModule: ['F4', 'F6'].includes(selectedClass) ? document.getElementById('ictModule').value : '',
+                ictExamFocus: ['F4', 'F6'].includes(selectedClass) ? document.getElementById('ictExamFocus').value : '',
+                ictTool: ['F4', 'F6'].includes(selectedClass) ? document.getElementById('ictTool').value : '',
+                ictNotes: ['F4', 'F6'].includes(selectedClass) ? document.getElementById('ictNotes').value : ''
+            };
+
+            // Loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>同步儲存中...</span>`;
+
+            // Save to Local Array & LocalStorage
+            appState.records.unshift(formData);
+            localStorage.setItem('teacher_app_records', JSON.stringify(appState.records));
+
+            // Sync with GAS Google Sheets if URL set
+            let syncedToGas = false;
+            if (appState.gasUrl) {
+                try {
+                    await fetch(appState.gasUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    syncedToGas = true;
+                } catch (err) {
+                    console.error("GAS Sync Error: ", err);
+                }
+            }
+
+            // Restore Submit Button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnContent;
+
+            // User Notification
+            if (syncedToGas) {
+                showToast('✅ 成功儲存並同步至 Google Sheets！', 'green');
+            } else {
+                showToast('💾 已完成本機儲存 (尚未連結/無法寫入 GAS)', 'blue');
+            }
+
+            // Clean Form & Refresh
+            resetForm();
+            renderHistoryTable();
+            updateRecordCountBadge();
+        }
+
+        // Reset Form Fields
+        function resetForm() {
+            document.getElementById('lessonForm').reset();
+            document.getElementById('inputDate').valueAsDate = new Date();
+            document.getElementById('blockSteam').classList.add('hidden');
+            document.getElementById('blockCL').classList.add('hidden');
+            document.getElementById('blockICT').classList.add('hidden');
+            document.getElementById('homeworkFields').classList.add('hidden');
+            document.getElementById('subjectHintText').innerText = "選擇班別後系統將自動套用預設科目。";
+        }
+
+        // Render History List Cards
+        function renderHistoryTable() {
+            const container = document.getElementById('historyListContainer');
+            const filterClass = document.getElementById('filterClass').value;
+            const filterSubject = document.getElementById('filterSubject').value;
+            const filterHw = document.getElementById('filterHw').value;
+
+            // Filter Records
+            let filtered = appState.records.filter(item => {
+                if (filterClass !== 'ALL' && item.className !== filterClass) return false;
+                if (filterSubject !== 'ALL' && item.subject !== filterSubject) return false;
+                if (filterHw === 'YES' && !item.hasHomework) return false;
+                if (filterHw === 'NO' && item.hasHomework) return false;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-10 rounded-xl border border-slate-200 text-center text-slate-400 space-y-2">
+                        <i class="fa-regular fa-folder-open text-4xl text-slate-300"></i>
+                        <p class="text-xs font-medium">尚無符合條件的課堂紀錄</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => {
+                // Color theme styling based on Subject
+                let badgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                let subjectTag = item.subject;
+                
+                if (item.subject === 'STEAM' || item.className === '1B') {
+                    badgeClass = 'bg-purple-100 text-purple-800 border-purple-200';
+                } else if (item.subject === 'CL' || ['1C', '2A', '3B'].includes(item.className)) {
+                    badgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                } else if (item.subject === 'ICT' || ['F4', 'F6'].includes(item.className)) {
+                    badgeClass = 'bg-blue-100 text-blue-800 border-blue-200';
+                }
+
+                return `
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2.5 py-0.5 rounded-md text-xs font-bold border ${badgeClass}">
+                                ${item.className} 班
+                            </span>
+                            <span class="text-xs font-bold text-slate-800">${subjectTag}</span>
+                        </div>
+                        <div class="text-xs text-slate-500 font-mono flex items-center space-x-1">
+                            <i class="fa-regular fa-calendar text-slate-400"></i>
+                            <span>${item.date}</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-sm">${item.topic}</h4>
+                        <p class="text-xs text-slate-600 mt-1 leading-relaxed">${item.details || '（無額外通用備註）'}</p>
+                    </div>
+
+                    <!-- STEAM Dynamic Info -->
+                    ${item.className === '1B' ? `
+                        <div class="bg-purple-50/70 p-3 rounded-lg border border-purple-100 text-xs space-y-1">
+                            <div class="font-bold text-purple-800 flex items-center space-x-1">
+                                <i class="fa-solid fa-atom text-purple-600"></i>
+                                <span>STEAM 模組: ${item.steamModule || '標準模組'}</span>
+                            </div>
+                            ${item.steamEquipment ? `<div class="text-purple-700"><strong>教具硬體:</strong> ${item.steamEquipment}</div>` : ''}
+                            ${item.steamSkill ? `<div class="text-purple-700"><strong>核心技能:</strong> ${item.steamSkill}</div>` : ''}
+                            ${item.steamGroupNotes ? `<div class="text-purple-600 italic mt-0.5"><strong>實作與除錯備註:</strong> ${item.steamGroupNotes}</div>` : ''}
+                        </div>
+                    ` : ''}
+
+                    <!-- CL Dynamic Info -->
+                    ${['1C', '2A', '3B'].includes(item.className) ? `
+                        <div class="bg-emerald-50/70 p-3 rounded-lg border border-emerald-100 text-xs space-y-1">
+                            <div class="font-bold text-emerald-800 flex items-center space-x-1">
+                                <i class="fa-solid fa-desktop text-emerald-600"></i>
+                                <span>CL 單元: ${item.clModule || '標準單元'}</span>
+                            </div>
+                            ${item.clSoftware ? `<div class="text-emerald-700"><strong>軟體/教材:</strong> ${item.clSoftware}</div>` : ''}
+                            ${item.clHandsOn ? `<div class="text-emerald-700"><strong>上機實作率:</strong> ${item.clHandsOn}</div>` : ''}
+                            ${item.clNotes ? `<div class="text-emerald-600 italic mt-0.5"><strong>觀測備註:</strong> ${item.clNotes}</div>` : ''}
+                        </div>
+                    ` : ''}
+
+                    <!-- ICT Dynamic Info -->
+                    ${['F4', 'F6'].includes(item.className) ? `
+                        <div class="bg-blue-50/70 p-3 rounded-lg border border-blue-100 text-xs space-y-1">
+                            <div class="font-bold text-blue-800 flex items-center space-x-1">
+                                <i class="fa-solid fa-code text-blue-600"></i>
+                                <span>ICT 範疇: ${item.ictModule || '標準範疇'}</span>
+                            </div>
+                            ${item.ictExamFocus ? `<div class="text-blue-700"><strong>試題/進度:</strong> ${item.ictExamFocus}</div>` : ''}
+                            ${item.ictTool ? `<div class="text-blue-700"><strong>語言/工具:</strong> ${item.ictTool}</div>` : ''}
+                            ${item.ictNotes ? `<div class="text-blue-600 italic mt-0.5"><strong>學習難點:</strong> ${item.ictNotes}</div>` : ''}
+                        </div>
+                    ` : ''}
+
+                    <!-- Homework Tag -->
+                    ${item.hasHomework ? `
+                        <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-200/80 flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-2 text-amber-900">
+                                <i class="fa-solid fa-book-bookmark text-amber-600"></i>
+                                <span><strong>功課:</strong> ${item.hwTitle}</span>
+                            </div>
+                            <span class="text-[11px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
+                                繳交日: ${item.hwDueDate}
+                            </span>
+                        </div>
+                    ` : ''}
+
+                    <div class="flex items-center justify-end pt-1">
+                        <button onclick="deleteRecord(${item.id})" class="text-xs text-red-500 hover:text-red-700 flex items-center space-x-1 transition">
+                            <i class="fa-regular fa-trash-can"></i>
+                            <span>刪除本機紀錄</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // Delete Record Locally
+        function deleteRecord(id) {
+            appState.records = appState.records.filter(r => r.id !== id);
+            localStorage.setItem('teacher_app_records', JSON.stringify(appState.records));
+            renderHistoryTable();
+            updateRecordCountBadge();
+            showToast('已刪除該筆本機紀錄', 'gray');
+        }
+
+        // Export to CSV helper
+        function exportCSV() {
+            if (appState.records.length === 0) {
+                showToast('目前尚無紀錄可供匯出！', 'amber');
+                return;
+            }
+
+            let csvContent = "\uFEFF"; // UTF-8 BOM
+            csvContent += "日期,班別,科目,課題,通用細節,是否有功課,功課名稱,繳交日期\n";
+
+            appState.records.forEach(r => {
+                const row = [
+                    `"${r.date}"`,
+                    `"${r.className}"`,
+                    `"${r.subject}"`,
+                    `"${(r.topic || '').replace(/"/g, '""')}"`,
+                    `"${(r.details || '').replace(/"/g, '""')}"`,
+                    `"${r.hasHomework ? '是' : '否'}"`,
+                    `"${(r.hwTitle || '').replace(/"/g, '""')}"`,
+                    `"${r.hwDueDate || ''}"`
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Lesson_Records_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('已成功匯出 CSV 檔！', 'green');
+        }
+
+        // Fetch Remote Test call
+        async function fetchFromGAS() {
+            if (!appState.gasUrl) {
+                showToast('請先填寫 GAS Web App URL！', 'amber');
+                openSettingsModal();
+                return;
+            }
+
+            try {
+                showToast('測試連線 Google Sheets...', 'blue');
+                const res = await fetch(appState.gasUrl);
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    showToast(`✅ 連線成功！試算表目前已有 ${data.length} 列資料`, 'green');
+                }
+            } catch (err) {
+                showToast('無法讀取 GAS (請確認 GAS 是否將權限設為「所有人」)', 'amber');
+            }
+        }
+
+        // Tab Switcher
+        function switchTab(tab) {
+            appState.activeTab = tab;
+            const tabNew = document.getElementById('tabNew');
+            const tabHistory = document.getElementById('tabHistory');
+            const btnNew = document.getElementById('tabBtnNew');
+            const btnHistory = document.getElementById('tabBtnHistory');
+
+            if (tab === 'new') {
+                tabNew.classList.remove('hidden');
+                tabHistory.classList.add('hidden');
+                btnNew.className = "pb-2 border-b-2 border-brand-600 text-brand-600 font-bold text-sm flex items-center space-x-2 whitespace-nowrap";
+                btnHistory.className = "pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2 whitespace-nowrap";
+            } else {
+                tabNew.classList.add('hidden');
+                tabHistory.classList.remove('hidden');
+                btnHistory.className = "pb-2 border-b-2 border-brand-600 text-brand-600 font-bold text-sm flex items-center space-x-2 whitespace-nowrap";
+                btnNew.className = "pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2 whitespace-nowrap";
+                renderHistoryTable();
+            }
+        }
+
+        // Settings Modal Handlers
+        function openSettingsModal() {
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function saveGasSettings() {
+            const url = document.getElementById('gasUrlInput').value.trim() || DEFAULT_GAS_URL;
+            appState.gasUrl = url;
+            localStorage.setItem('teacher_app_gas_url', url);
+            updateGasBadgeStatus(!!url);
             closeSettingsModal();
-            showToast('設定已成功儲存！', 'success');
+            showToast('GAS 雲端連線設定已儲存！', 'green');
         }
 
         function updateGasBadgeStatus(isConnected) {
             const badge = document.getElementById('gasStatusBadge');
-            const text = document.getElementById('gasStatusText');
-
+            const badgeText = document.getElementById('gasStatusText');
             if (isConnected) {
-                badge.className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200';
-                text.innerText = '雲端已同步';
+                badge.className = "flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200";
+                badgeText.innerText = "已連結至 Google Sheets";
             } else {
-                badge.className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200';
-                text.innerText = '本機儲存';
+                badge.className = "flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200";
+                badgeText.innerText = "本機儲存模式 (未連結 GAS)";
             }
         }
 
-        function syncToGasCloud() {
-            if (!gasEndpoint) return;
-            // Background sync logic if GAS endpoint provided
-            fetch(gasEndpoint, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'syncRecords', records: classRecords })
-            }).catch(e => console.log('GAS sync silent error:', e));
+        function updateRecordCountBadge() {
+            document.getElementById('recordCountBadge').innerText = appState.records.length;
         }
 
-        function exportDataJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
-                records: classRecords,
-                todos: todoList
-            }, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `Teacher_Records_Backup_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+        // Copy Script helper
+        function copyGasScript() {
+            const codeText = document.getElementById('gasCodeBlock').innerText;
+            const textarea = document.createElement('textarea');
+            textarea.value = codeText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('GAS 程式碼已複製至剪貼簿！', 'green');
         }
 
-        function clearAllData() {
-            if (confirm('警告：確定要清除本機所有課堂紀錄及待辦事項嗎？此動作無法復原！')) {
-                localStorage.removeItem('teacher_class_records');
-                localStorage.removeItem('teacher_todo_list');
-                classRecords = [];
-                todoList = [];
-                renderRecords();
-                renderTodoList();
-                closeSettingsModal();
-                showToast('所有本機資料已清除', 'info');
-            }
-        }
-
-        // Helper: Toast Notifications
-        function showToast(msg, type = 'info') {
-            const container = document.getElementById('toastContainer');
+        // Toast Helper
+        function showToast(message, color = 'blue') {
+            const toastContainer = document.getElementById('toastContainer');
             const toast = document.createElement('div');
+            
+            const colorClasses = {
+                green: 'bg-emerald-800 text-white',
+                purple: 'bg-purple-800 text-white',
+                amber: 'bg-amber-800 text-white',
+                gray: 'bg-slate-800 text-white',
+                blue: 'bg-brand-700 text-white'
+            };
 
-            let bgStyle = 'bg-slate-800 text-white';
-            if (type === 'success') bgStyle = 'bg-emerald-600 text-white';
-            if (type === 'cheer') bgStyle = 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg';
-            if (type === 'warning') bgStyle = 'bg-amber-600 text-white';
-
-            toast.className = `px-4 py-2.5 rounded-xl font-medium text-xs shadow-md border border-white/20 pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0 flex items-center space-x-2 ${bgStyle}`;
-            toast.innerHTML = `<span>${msg}</span>`;
-
-            container.appendChild(toast);
+            toast.className = `${colorClasses[color] || colorClasses.blue} px-4 py-3 rounded-xl shadow-xl text-xs font-medium flex items-center space-x-2 animate-fade-in transition-all pointer-events-auto`;
+            toast.innerHTML = `<span>${message}</span>`;
+            
+            toastContainer.appendChild(toast);
 
             setTimeout(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            }, 10);
-
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
+                toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
-            }, 3500);
+            }, 3000);
         }
-
-        // Helper: Escape HTML
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/&/g, "&amp;")
-                      .replace(/</g, "&lt;")
-                      .replace(/>/g, "&gt;")
-                      .replace(/"/g, "&quot;")
-                      .replace(/'/g, "&#039;");
-        }
-
-        // Page OnLoad Initialization
-        window.onload = function() {
-            // Set current date string
-            const dateElem = document.getElementById('currentDateStr');
-            if (dateElem) {
-                const now = new Date();
-                dateElem.innerText = `今天是 ${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
-            }
-
-            // Restore input values from localStorage
-            if (document.getElementById('sheetUrlInput')) document.getElementById('sheetUrlInput').value = googleSheetUrl;
-            if (document.getElementById('gasUrlInput')) document.getElementById('gasUrlInput').value = gasEndpoint;
-            updateGasBadgeStatus(Boolean(gasEndpoint));
-
-            // Initialize topics, records, todos and mascot follow loop
-            updateTopicsByForm();
-            loadClassRecords();
-            loadTodoList();
-            animateMascotFollow();
-        };
     </script>
 </body>
 </html>
