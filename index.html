@@ -68,7 +68,6 @@
             width: 100%;
         }
         
-        /* Auto height behavior for iframe embedding like Google Sites */
         body {
             min-height: 100vh;
             display: flex;
@@ -94,19 +93,16 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Prevent auto zoom on iOS Safari when focus on inputs */
         @media screen and (max-width: 768px) {
             input, select, textarea {
                 font-size: 16px !important;
             }
         }
 
-        /* Touch target minimum height for mobile & tablets */
         button, select, input, textarea {
             min-height: 42px;
         }
 
-        /* Print Optimization for generating PDF/Reports on any platform */
         @media print {
             header, button, #toastContainer, #settingsModal, .no-print {
                 display: none !important;
@@ -141,7 +137,7 @@
                 </div>
             </div>
 
-            <!-- GAS Status Badge & Quick Settings -->
+            <!-- Header Action Buttons & Status -->
             <div class="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-0 border-slate-100 pt-2 sm:pt-0">
                 <div id="networkStatus" class="hidden sm:inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -152,6 +148,13 @@
                     <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                     <span id="gasStatusText">本機模式</span>
                 </div>
+
+                <!-- Google Sheet Quick Access Button -->
+                <button onclick="openGoogleSheet()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 border border-emerald-500 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 shadow-sm text-xs font-bold rounded-lg transition min-h-[38px] touch-manipulation" title="開啟連線的 Google Sheet 試算表">
+                    <i class="fa-solid fa-file-excel text-emerald-600"></i>
+                    <span class="hidden xs:inline">開啟 Google Sheet</span>
+                    <span class="xs:hidden">Sheet</span>
+                </button>
 
                 <button onclick="openSettingsModal()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 border border-slate-300 shadow-sm text-xs font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition min-h-[38px] touch-manipulation">
                     <i class="fa-solid fa-gear text-slate-500"></i>
@@ -181,7 +184,7 @@
             <div class="text-[11px] sm:text-xs text-slate-500 flex flex-wrap items-center gap-2 sm:gap-4">
                 <span title="包含班別：1B"><i class="fa-solid fa-atom text-purple-600 mr-1"></i>STEAM (1B)</span>
                 <span title="包含班別：1C, 2A, 3B"><i class="fa-solid fa-desktop text-green-600 mr-1"></i>CL (1C, 2A, 3B)</span>
-                <span title="包含班別：F4, F6"><i class="fa-solid fa-code text-blue-600 mr-1"></i>ICT (F4, F6)</span>
+                <span title="包含班別：F4, F5, F6"><i class="fa-solid fa-code text-blue-600 mr-1"></i>ICT (F4-F6)</span>
             </div>
         </div>
 
@@ -218,11 +221,12 @@
                                 <select id="inputClass" onchange="handleClassChange()" required class="w-full px-3 py-2.5 sm:py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-base sm:text-sm appearance-none bg-white font-medium">
                                     <option value="" disabled selected>請選擇班別...</option>
                                     <option value="1B">1B — (STEAM 專屬)</option>
-                                    <option value="1C">1C — (CL 電腦認知科)</option>
-                                    <option value="2A">2A — (CL 電腦認知科)</option>
-                                    <option value="3B">3B — (CL 電腦認知科)</option>
-                                    <option value="F4">F4 — (ICT 高中資訊科技)</option>
-                                    <option value="F6">F6 — (ICT 高中資訊科技)</option>
+                                    <option value="1C">1C — (中一 CL 電腦認知)</option>
+                                    <option value="2A">2A — (中二 CL 電腦認知)</option>
+                                    <option value="3B">3B — (中三 CL 電腦認知)</option>
+                                    <option value="F4">F4 — (中四 DSE ICT)</option>
+                                    <option value="F5">F5 — (中五 DSE ICT)</option>
+                                    <option value="F6">F6 — (中六 DSE ICT)</option>
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
                                     <i class="fa-solid fa-chevron-down text-xs"></i>
@@ -239,7 +243,7 @@
                         <select id="inputSubject" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 text-sm bg-white font-semibold">
                             <option value="STEAM">STEAM 科 (1B 專屬)</option>
                             <option value="CL">CL 電腦認知科 (1C, 2A, 3B)</option>
-                            <option value="ICT">ICT 資訊及通訊科技 (F4, F6)</option>
+                            <option value="ICT">ICT 資訊及通訊科技 (F4-F6)</option>
                             <option value="其他">其他科目</option>
                         </select>
                         <p class="text-[11px] text-slate-400 mt-1" id="subjectHintText">選擇班別後系統將會自動套用預設科目。</p>
@@ -247,7 +251,7 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">課堂課題 / 主題名稱 *</label>
-                        <input type="text" id="inputTopic" placeholder="例如：Micro:bit 傳感器應用 / Python 迴圈結構 / 網路通訊協定" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 text-sm">
+                        <input type="text" id="inputTopic" placeholder="例如：Micro:bit 傳感器 / Python 變數 / DSE ICT 網絡安全" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 text-sm">
                     </div>
                 </div>
 
@@ -303,30 +307,25 @@
                                 <i class="fa-solid fa-desktop text-cl-600 text-lg"></i>
                                 <span>初中 CL (電腦認知科) 專屬教學紀錄</span>
                             </div>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cl-100 text-cl-700 border border-cl-200">1C / 2A / 3B</span>
+                            <span id="clClassBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cl-100 text-cl-700 border border-cl-200">1C / 2A / 3B</span>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">CL 單元類別</label>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">CL 課題範疇</label>
                                 <select id="clModule" class="w-full px-3 py-2 border border-cl-200 rounded-lg focus:ring-2 focus:ring-cl-500 text-sm bg-white">
-                                    <option value="Scratch 積木圖像化程式編寫">Scratch 圖像化程式設計</option>
-                                    <option value="Python 基礎語法與邏輯">Python 基礎程式設計</option>
-                                    <option value="App Inventor 行動應用程式">App Inventor 行動應用設計</option>
-                                    <option value="試算表與資料處理 (Excel/Sheets)">試算表數據處理 (Excel/Sheets)</option>
-                                    <option value="簡報技巧與多媒體剪輯">多媒體與簡報設計</option>
-                                    <option value="網路安全與資訊素養 (Cyber Safety)">網路安全與資訊素養</option>
+                                    <!-- Dynamic options updated by JS based on Selected Class -->
                                 </select>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">軟體/平台/教材</label>
-                                <input type="text" id="clSoftware" placeholder="例：Scratch 3.0, Google Classroom, PyCharm" class="w-full px-3 py-2 border border-cl-200 rounded-lg focus:ring-2 focus:ring-cl-500 text-sm bg-white">
+                                <input type="text" id="clSoftware" placeholder="例：Scratch 3.0, Photopea, Python IDLE" class="w-full px-3 py-2 border border-cl-200 rounded-lg focus:ring-2 focus:ring-cl-500 text-sm bg-white">
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">電腦室上機實作率 (%)</label>
-                                <input type="text" id="clHandsOn" placeholder="例：70% 課堂上機演練" class="w-full px-3 py-2 border border-cl-200 rounded-lg focus:ring-2 focus:ring-cl-500 text-sm bg-white">
+                                <input type="text" id="clHandsOn" placeholder="例：80% 課堂上機演練" class="w-full px-3 py-2 border border-cl-200 rounded-lg focus:ring-2 focus:ring-cl-500 text-sm bg-white">
                             </div>
                         </div>
 
@@ -337,7 +336,7 @@
                     </div>
                 </div>
 
-                <!-- BLOCK C: F4, F6 ICT (Senior Secondary) Block -->
+                <!-- BLOCK C: F4-F6 ICT (Senior Secondary DSE) Block -->
                 <div id="blockICT" class="hidden transition-all duration-300">
                     <div class="bg-gradient-to-r from-ict-50 via-blue-50 to-indigo-50 p-5 rounded-xl border border-ict-200 space-y-4 shadow-sm">
                         <div class="flex items-center justify-between border-b border-ict-200/60 pb-3">
@@ -345,36 +344,39 @@
                                 <i class="fa-solid fa-code text-ict-600 text-lg"></i>
                                 <span>高中 ICT (資訊及通訊科技) DSE 專屬紀錄</span>
                             </div>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-ict-100 text-ict-700 border border-ict-200">F4 / F6 (DSE)</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-ict-100 text-ict-700 border border-ict-200">F4 - F6 (DSE ICT)</span>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">DSE 範疇 (Module)</label>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">DSE 必修/選修範疇</label>
                                 <select id="ictModule" class="w-full px-3 py-2 border border-ict-200 rounded-lg focus:ring-2 focus:ring-ict-500 text-sm bg-white">
-                                    <option value="C: 算法與程式編寫 (Algorithm & C)">範疇 C: 演算法與 C 語言編寫</option>
-                                    <option value="A: 資訊處理 (Data & Database)">範疇 A: 資訊處理與 SQL 資料庫</option>
-                                    <option value="B: 電腦系統與網絡 (System & Networking)">範疇 B: 電腦系統架構與網絡</option>
-                                    <option value="D: 社會與倫理議題 (Social Issues)">範疇 D: 資訊科技社會議題</option>
-                                    <option value="DSE 歷屆試題操練 (Past Paper)">HKDSE 試題操練與題型解析</option>
-                                    <option value="SBA 校本評核輔導">SBA 校本評核專案輔導</option>
+                                    <option value="必修 A: 資訊處理 (Information Processing)">必修 A: 資訊處理 (Information Processing)</option>
+                                    <option value="必修 B: 電腦系統基礎 (Computer System Fundamentals)">必修 B: 電腦系統基礎 (Computer System)</option>
+                                    <option value="必修 C: 網絡通訊 (Internetworking and Applications)">必修 C: 網絡通訊 (Internetworking)</option>
+                                    <option value="必修 D: 計算機化社會的影響 (Social Implications)">必修 D: 計算機化社會的影響 (Social Issues)</option>
+                                    <option value="必修 E: 演算法與程式編寫 (Algorithm & Programming)">必修 E: 演算法與程式編寫 (Algorithm)</option>
+                                    <option value="選修 A: 數據庫 (Databases)">選修 A: 數據庫 (Databases)</option>
+                                    <option value="選修 B: 數據通訊與網絡 (Data Communications and Networking)">選修 B: 數據通訊與網絡 (Networking)</option>
+                                    <option value="HKDSE 歷屆試題操練 (Past Paper)">HKDSE 歷屆試題操練 (Past Paper)</option>
+                                    <option value="SBA 校本評核專案 (School-based Assessment)">SBA 校本評核專案輔導</option>
                                 </select>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">試題/章節進度</label>
-                                <input type="text" id="ictExamFocus" placeholder="例：2021 Paper 1B Q3 / SQL Join 查詢" class="w-full px-3 py-2 border border-ict-200 rounded-lg focus:ring-2 focus:ring-ict-500 text-sm bg-white">
+                                <input type="text" id="ictExamFocus" placeholder="例：2022 Paper 1B Q3 / SQL Join 查詢" class="w-full px-3 py-2 border border-ict-200 rounded-lg focus:ring-2 focus:ring-ict-500 text-sm bg-white">
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">程式語言 / 數據庫工具</label>
-                                <input type="text" id="ictTool" placeholder="例：C++ / Python / MS Access / SQL" class="w-full px-3 py-2 border border-ict-200 rounded-lg focus:ring-2 focus:ring-ict-500 text-sm bg-white">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">程式語言 / 工具軟件</label>
+                                <input type="text" id="ictTool" placeholder="例：Python / C++ / MS Access / SQL" class="w-full px-3 py-2 border border-ict-200 rounded-lg focus:ring-2 focus:ring-ict-500 text-sm bg-white">
                             </div>
                         </div>
 
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">高中學生學習難點與升學複習備註</label>
-                            <textarea id="ictNotes" rows="2" placeholder="記錄學生在邏輯追蹤 (Trace Table)、概念迷思或 SBA 實作遇到的瓶頸..." class="w-full px-3 py-2 border border-ict-200 rounded-lg focus:ring-2 focus:ring-ict-500 text-sm bg-white"></textarea>
+                            <textarea id="ictNotes" rows="2" placeholder="記錄學生在 Trace Table 追蹤、邏輯概念迷思或 SBA 實作遇到的瓶頸..." class="w-full px-3 py-2 border border-ict-200 rounded-lg focus:ring-2 focus:ring-ict-500 text-sm bg-white"></textarea>
                         </div>
                     </div>
                 </div>
@@ -398,7 +400,7 @@
                     <div id="homeworkFields" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4 bg-amber-50/50 p-4 rounded-xl border border-amber-200/70">
                         <div class="md:col-span-2">
                             <label class="block text-xs font-semibold text-amber-900 uppercase mb-1">功課名稱 / 作業內容說明 *</label>
-                            <input type="text" id="hwTitle" placeholder="例如：CL 工作紙 P.12-14 / STEAM 專案設計草稿 / ICT Past Paper 2020 Q1-4" class="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm bg-white">
+                            <input type="text" id="hwTitle" placeholder="例如：CL 工作紙 P.12-14 / STEAM 專案設計草稿 / ICT Past Paper 2021 Q1-4" class="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm bg-white">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-amber-900 uppercase mb-1">預計繳交日期 (Due Date) *</label>
@@ -432,10 +434,11 @@
                         <select id="filterClass" onchange="renderHistoryTable()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:ring-brand-500 font-medium">
                             <option value="ALL">全部班別</option>
                             <option value="1B">1B (STEAM)</option>
-                            <option value="1C">1C (CL)</option>
-                            <option value="2A">2A (CL)</option>
-                            <option value="3B">3B (CL)</option>
+                            <option value="1C">1C (中一 CL)</option>
+                            <option value="2A">2A (中二 CL)</option>
+                            <option value="3B">3B (中三 CL)</option>
                             <option value="F4">F4 (ICT)</option>
+                            <option value="F5">F5 (ICT)</option>
                             <option value="F6">F6 (ICT)</option>
                         </select>
                     </div>
@@ -494,7 +497,7 @@
             <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-cloud-check text-brand-600 text-lg sm:text-xl"></i>
-                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">Google Sheets (GAS) 後端串接設定</h3>
+                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">Google Sheets (GAS) 後端串接與連結設定</h3>
                 </div>
                 <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg text-lg min-h-[40px] flex items-center justify-center">
                     <i class="fa-solid fa-xmark"></i>
@@ -508,32 +511,21 @@
                 <div class="bg-brand-50 p-4 rounded-xl border border-brand-100 space-y-2">
                     <label class="block font-bold text-brand-700 text-xs uppercase">Google Apps Script Web App URL</label>
                     <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-brand-500 bg-white">
-                    <p class="text-[11px] text-slate-500">已內建預設 Google Sheet 雲端連結，在任何裝置開啟皆可自動連線！如日後需要更換試算表，可於此處更新。</p>
+                </div>
+
+                <!-- Direct Google Sheet Link Setting -->
+                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100 space-y-2">
+                    <label class="block font-bold text-emerald-800 text-xs uppercase">Google Sheet 試算表直接開啟連結 (Spreadsheet URL)</label>
+                    <input type="url" id="sheetUrlInput" placeholder="https://docs.google.com/spreadsheets/d/..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-emerald-500 bg-white">
+                    <p class="text-[11px] text-slate-500">設定後，點擊頂端的「開啟 Google Sheet」按鈕將會直接跳轉至此 Google 試算表。</p>
                 </div>
 
                 <!-- Embed Height Tip -->
                 <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-800 flex items-start space-x-2">
                     <i class="fa-solid fa-circle-info text-amber-600 mt-0.5"></i>
                     <div>
-                        <strong>協作平台嵌入建議：</strong>若將此頁面嵌入 Google Sites 或學校協作平台，建議將嵌入區塊的高度設定為 <strong>850px 以上</strong>，即可獲得完整視圖並避免出現雙重滾動條 (Double Scrollbars)。
+                        <strong>協作平台嵌入建議：</strong>若將此頁面嵌入 Google Sites，建議嵌入區塊高度設定為 <strong>850px 以上</strong>，即可避免雙重滾動條。
                     </div>
-                </div>
-
-                <!-- Tutorial -->
-                <div class="space-y-3">
-                    <h4 class="font-bold text-slate-800 text-sm flex items-center space-x-1.5">
-                        <i class="fa-solid fa-list-ol text-brand-600"></i>
-                        <span>3 分鐘建置 Google Sheets 自動紀錄檔步驟：</span>
-                    </h4>
-
-                    <ol class="list-decimal list-inside space-y-2 text-slate-600 leading-relaxed pl-1">
-                        <li>開啟一個全新的 <a href="https://sheets.new" target="_blank" class="text-brand-600 font-bold underline">Google 試算表 (Google Sheets)</a>。</li>
-                        <li>點擊上方選單 <strong>「擴充功能 (Extensions)」 &gt; 「Apps Script」</strong>。</li>
-                        <li>將下方區塊的程式碼完全覆蓋貼入編輯器中，點選儲存。</li>
-                        <li>點擊右上角 <strong>「部署 (Deploy)」 &gt; 「新建部署 (New deployment)」</strong>。</li>
-                        <li>種類選擇 <strong>「Web 應用程式 (Web app)」</strong>，存取權限設為 <strong>「所有人 (Anyone)」</strong>（必須設定為所有人）。</li>
-                        <li>複製部署完成後的 <strong>Web App URL</strong> 貼回本系統上方點選「儲存設定」即可！</li>
-                    </ol>
                 </div>
 
                 <!-- Code Copy Block -->
@@ -550,7 +542,6 @@ function doPost(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     
-    // 若試算表為空，自動建立表頭標題
     if (sheet.getLastRow() === 0) {
       sheet.appendRow([
         "紀錄時間", "課堂日期", "班別", "科目", "課題名稱", 
@@ -561,7 +552,6 @@ function doPost(e) {
 
     var data = JSON.parse(e.postData.contents);
     
-    // 根據班別提取專屬欄位
     var moduleVal = data.steamModule || data.clModule || data.ictModule || "";
     var toolVal = data.steamEquipment || data.clSoftware || data.ictExamFocus || "";
     var metricVal = data.steamSkill || data.clHandsOn || data.ictTool || "";
@@ -615,29 +605,25 @@ function doGet(e) {
     </div>
 
     <script>
-        // System Default Google Apps Script Web App URL
+        // System Defaults
         const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwtXBYsOpQh4bPcJM3EbOrXFr50FMYGhubd3iMn5IOMM146epApkKGfT4zBeGlVc4E7oQ/exec';
+        const DEFAULT_SHEET_URL = 'https://docs.google.com/spreadsheets/';
 
         // System State
         let appState = {
             records: [],
             gasUrl: localStorage.getItem('teacher_app_gas_url') || DEFAULT_GAS_URL,
+            sheetUrl: localStorage.getItem('teacher_app_sheet_url') || DEFAULT_SHEET_URL,
             activeTab: 'new'
         };
 
-        // Notify parent iframe (Google Sites / Host LMS) of height changes
-        function notifyParentHeight() {
-            try {
-                if (window.parent && window.parent !== window) {
-                    const bodyHeight = document.body.scrollHeight;
-                    window.parent.postMessage({ type: 'RESIZE_IFRAME', height: bodyHeight }, '*');
-                }
-            } catch (e) {
-                // Ignore cross-origin error if any
-            }
+        // Open Google Sheet Function
+        function openGoogleSheet() {
+            const url = appState.sheetUrl || DEFAULT_SHEET_URL;
+            window.open(url, '_blank');
         }
 
-        // Dynamic Block Switching with height recalculation
+        // Dynamic Class Change & Curriculum Switching
         function handleClassChange() {
             const classVal = document.getElementById('inputClass').value;
             const subjectSelect = document.getElementById('inputSubject');
@@ -647,35 +633,67 @@ function doGet(e) {
             const blockCL = document.getElementById('blockCL');
             const blockICT = document.getElementById('blockICT');
 
+            const clModuleSelect = document.getElementById('clModule');
+            const clClassBadge = document.getElementById('clClassBadge');
+
             // Reset blocks
             blockSteam.classList.add('hidden');
             blockCL.classList.add('hidden');
             blockICT.classList.add('hidden');
 
-            // Apply specific class rules
             if (classVal === '1B') {
                 subjectSelect.value = 'STEAM';
                 blockSteam.classList.remove('hidden');
                 hintText.innerText = "已自動套用：1B 專屬 STEAM 科目區塊。";
                 showToast('已切換至 1B 班，啟用 STEAM 專屬紀錄區塊', 'purple');
-            } else if (['1C', '2A', '3B'].includes(classVal)) {
+            } 
+            else if (['1C', '2A', '3B'].includes(classVal)) {
                 subjectSelect.value = 'CL';
                 blockCL.classList.remove('hidden');
-                hintText.innerText = `已自動套用：${classVal} 初中 CL (電腦認知科) 區塊。`;
-                showToast(`已切換至 ${classVal} 班，啟用 CL 電腦認知科紀錄區塊`, 'green');
-            } else if (['F4', 'F6'].includes(classVal)) {
+                clClassBadge.innerText = `${classVal} 專屬 CL 課題`;
+
+                // Update CL Topics based on requested Grade level
+                if (classVal === '1C') { // 中一: Scratch, 電腦, AI
+                    clModuleSelect.innerHTML = `
+                        <option value="Scratch 程式設計">Scratch 圖像化程式編寫</option>
+                        <option value="電腦基礎認知與操作">電腦基礎認知與電腦系統</option>
+                        <option value="AI 人工智慧基礎概念">AI 人工智慧基礎與應用</option>
+                    `;
+                } else if (classVal === '2A') { // 中二: Photopea, App Inventor, AI
+                    clModuleSelect.innerHTML = `
+                        <option value="Photopea 影像處理與設計">Photopea 影像處理與繪圖設計</option>
+                        <option value="App Inventor 行動應用程式開發">App Inventor 行動 App 開發</option>
+                        <option value="AI 進階應用與機器學習">AI 進階應用與生成式 AI</option>
+                    `;
+                } else if (classVal === '3B') { // 中三: Python, 網頁及互聯網, AI
+                    clModuleSelect.innerHTML = `
+                        <option value="Python 程式語言基礎">Python 程式語言與邏輯演算法</option>
+                        <option value="網頁設計與網際網路架構">網頁設計 (HTML/CSS) 與網際網路</option>
+                        <option value="AI 專題與倫理實作">AI 專題實作與資訊倫理</option>
+                    `;
+                }
+                hintText.innerText = `已自動套用：${classVal} 初中 CL 專屬課題選單。`;
+                showToast(`已切換至 ${classVal} 班，載入專屬 CL 課題`, 'green');
+            } 
+            else if (['F4', 'F5', 'F6'].includes(classVal)) {
                 subjectSelect.value = 'ICT';
                 blockICT.classList.remove('hidden');
-                hintText.innerText = `已自動套用：${classVal} 高中 ICT 資訊科技區塊。`;
-                showToast(`已切換至 ${classVal} 班，啟用 ICT 資訊科技紀錄區塊`, 'blue');
-            } else {
-                hintText.innerText = "選擇班別後系統將自動套用預設科目。";
+                hintText.innerText = `已自動套用：${classVal} 高中 DSE ICT 必修/選修區塊。`;
+                showToast(`已切換至 ${classVal} 班，啟用 DSE ICT 專屬紀錄區塊`, 'blue');
             }
 
             setTimeout(notifyParentHeight, 150);
         }
 
-        // Toggle Homework Fields
+        function notifyParentHeight() {
+            try {
+                if (window.parent && window.parent !== window) {
+                    const bodyHeight = document.body.scrollHeight;
+                    window.parent.postMessage({ type: 'RESIZE_IFRAME', height: bodyHeight }, '*');
+                }
+            } catch (e) {}
+        }
+
         function toggleHomeworkFields() {
             const isChecked = document.getElementById('hasHomeworkToggle').checked;
             const hwFields = document.getElementById('homeworkFields');
@@ -690,7 +708,6 @@ function doGet(e) {
             setTimeout(notifyParentHeight, 150);
         }
 
-        // Tab Switcher
         function switchTab(tab) {
             appState.activeTab = tab;
             const tabNew = document.getElementById('tabNew');
@@ -714,11 +731,11 @@ function doGet(e) {
             setTimeout(notifyParentHeight, 150);
         }
 
-        // Resize Listener for iframe responsiveness
         window.addEventListener('resize', notifyParentHeight);
 
-        // Settings Modal Handlers
         function openSettingsModal() {
+            document.getElementById('gasUrlInput').value = appState.gasUrl;
+            document.getElementById('sheetUrlInput').value = appState.sheetUrl;
             document.getElementById('settingsModal').classList.remove('hidden');
         }
 
@@ -726,13 +743,23 @@ function doGet(e) {
             document.getElementById('settingsModal').classList.add('hidden');
         }
 
-        // Quick date helper
+        function saveGasSettings() {
+            const gasUrl = document.getElementById('gasUrlInput').value.trim() || DEFAULT_GAS_URL;
+            const sheetUrl = document.getElementById('sheetUrlInput').value.trim() || DEFAULT_SHEET_URL;
+            appState.gasUrl = gasUrl;
+            appState.sheetUrl = sheetUrl;
+            localStorage.setItem('teacher_app_gas_url', gasUrl);
+            localStorage.setItem('teacher_app_sheet_url', sheetUrl);
+            updateGasBadgeStatus(!!gasUrl);
+            closeSettingsModal();
+            showToast('雲端連線與試算表網址設定已儲存！', 'green');
+        }
+
         function setTodayDate() {
             document.getElementById('inputDate').valueAsDate = new Date();
             showToast('已設為今日日期', 'blue');
         }
 
-        // Network status monitor for cross-platform robustness
         function updateNetworkStatus() {
             const netStatus = document.getElementById('networkStatus');
             if (navigator.onLine) {
@@ -746,7 +773,6 @@ function doGet(e) {
         window.addEventListener('online', updateNetworkStatus);
         window.addEventListener('offline', updateNetworkStatus);
 
-        // Initialize Application
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('inputDate').valueAsDate = new Date();
             
@@ -759,74 +785,13 @@ function doGet(e) {
                 }
             }
 
-            if (appState.gasUrl) {
-                document.getElementById('gasUrlInput').value = appState.gasUrl;
-                updateGasBadgeStatus(true);
-            } else {
-                updateGasBadgeStatus(false);
-            }
-
+            updateGasBadgeStatus(!!appState.gasUrl);
             updateNetworkStatus();
             renderHistoryTable();
             updateRecordCountBadge();
             notifyParentHeight();
         });
 
-        // Dynamic Subject & Special Block Switching based on Class Selection Rule
-        function handleClassChange() {
-            const classVal = document.getElementById('inputClass').value;
-            const subjectSelect = document.getElementById('inputSubject');
-            const hintText = document.getElementById('subjectHintText');
-
-            const blockSteam = document.getElementById('blockSteam');
-            const blockCL = document.getElementById('blockCL');
-            const blockICT = document.getElementById('blockICT');
-
-            // Reset blocks
-            blockSteam.classList.add('hidden');
-            blockCL.classList.add('hidden');
-            blockICT.classList.add('hidden');
-
-            // Apply specific class rules
-            if (classVal === '1B') {
-                // Rule 1: 1B -> STEAM
-                subjectSelect.value = 'STEAM';
-                blockSteam.classList.remove('hidden');
-                hintText.innerText = "已自動套用：1B 專屬 STEAM 科目區塊。";
-                showToast('已切換至 1B 班，啟用 STEAM 專屬紀錄區塊', 'purple');
-            } else if (['1C', '2A', '3B'].includes(classVal)) {
-                // Rule 2: 1C, 2A, 3B -> CL
-                subjectSelect.value = 'CL';
-                blockCL.classList.remove('hidden');
-                hintText.innerText = `已自動套用：${classVal} 初中 CL (電腦認知科) 區塊。`;
-                showToast(`已切換至 ${classVal} 班，啟用 CL 電腦認知科紀錄區塊`, 'green');
-            } else if (['F4', 'F6'].includes(classVal)) {
-                // Rule 3: F4, F6 -> ICT
-                subjectSelect.value = 'ICT';
-                blockICT.classList.remove('hidden');
-                hintText.innerText = `已自動套用：${classVal} 高中 ICT 資訊科技區塊。`;
-                showToast(`已切換至 ${classVal} 班，啟用 ICT 資訊科技紀錄區塊`, 'blue');
-            } else {
-                hintText.innerText = "選擇班別後系統將自動套用預設科目。";
-            }
-        }
-
-        // Toggle Homework Fields
-        function toggleHomeworkFields() {
-            const isChecked = document.getElementById('hasHomeworkToggle').checked;
-            const hwFields = document.getElementById('homeworkFields');
-            if (isChecked) {
-                hwFields.classList.remove('hidden');
-                // Auto set default due date to tomorrow
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                document.getElementById('hwDueDate').valueAsDate = tomorrow;
-            } else {
-                hwFields.classList.add('hidden');
-            }
-        }
-
-        // Form Submission
         async function handleFormSubmit(event) {
             event.preventDefault();
             const submitBtn = document.getElementById('btnSubmit');
@@ -838,7 +803,6 @@ function doGet(e) {
                 return;
             }
 
-            // Build Payload
             const formData = {
                 id: Date.now(),
                 createdAt: new Date().toISOString(),
@@ -851,7 +815,6 @@ function doGet(e) {
                 hwTitle: document.getElementById('hasHomeworkToggle').checked ? document.getElementById('hwTitle').value : '',
                 hwDueDate: document.getElementById('hasHomeworkToggle').checked ? document.getElementById('hwDueDate').value : '',
                 
-                // Dynamic Fields according to Class category
                 steamModule: selectedClass === '1B' ? document.getElementById('steamModule').value : '',
                 steamEquipment: selectedClass === '1B' ? document.getElementById('steamEquipment').value : '',
                 steamSkill: selectedClass === '1B' ? document.getElementById('steamSkill').value : '',
@@ -862,21 +825,18 @@ function doGet(e) {
                 clHandsOn: ['1C', '2A', '3B'].includes(selectedClass) ? document.getElementById('clHandsOn').value : '',
                 clNotes: ['1C', '2A', '3B'].includes(selectedClass) ? document.getElementById('clNotes').value : '',
 
-                ictModule: ['F4', 'F6'].includes(selectedClass) ? document.getElementById('ictModule').value : '',
-                ictExamFocus: ['F4', 'F6'].includes(selectedClass) ? document.getElementById('ictExamFocus').value : '',
-                ictTool: ['F4', 'F6'].includes(selectedClass) ? document.getElementById('ictTool').value : '',
-                ictNotes: ['F4', 'F6'].includes(selectedClass) ? document.getElementById('ictNotes').value : ''
+                ictModule: ['F4', 'F5', 'F6'].includes(selectedClass) ? document.getElementById('ictModule').value : '',
+                ictExamFocus: ['F4', 'F5', 'F6'].includes(selectedClass) ? document.getElementById('ictExamFocus').value : '',
+                ictTool: ['F4', 'F5', 'F6'].includes(selectedClass) ? document.getElementById('ictTool').value : '',
+                ictNotes: ['F4', 'F5', 'F6'].includes(selectedClass) ? document.getElementById('ictNotes').value : ''
             };
 
-            // Loading state
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>同步儲存中...</span>`;
 
-            // Save to Local Array & LocalStorage
             appState.records.unshift(formData);
             localStorage.setItem('teacher_app_records', JSON.stringify(appState.records));
 
-            // Sync with GAS Google Sheets if URL set
             let syncedToGas = false;
             if (appState.gasUrl) {
                 try {
@@ -892,24 +852,20 @@ function doGet(e) {
                 }
             }
 
-            // Restore Submit Button
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnContent;
 
-            // User Notification
             if (syncedToGas) {
                 showToast('✅ 成功儲存並同步至 Google Sheets！', 'green');
             } else {
                 showToast('💾 已完成本機儲存 (尚未連結/無法寫入 GAS)', 'blue');
             }
 
-            // Clean Form & Refresh
             resetForm();
             renderHistoryTable();
             updateRecordCountBadge();
         }
 
-        // Reset Form Fields
         function resetForm() {
             document.getElementById('lessonForm').reset();
             document.getElementById('inputDate').valueAsDate = new Date();
@@ -920,14 +876,12 @@ function doGet(e) {
             document.getElementById('subjectHintText').innerText = "選擇班別後系統將自動套用預設科目。";
         }
 
-        // Render History List Cards
         function renderHistoryTable() {
             const container = document.getElementById('historyListContainer');
             const filterClass = document.getElementById('filterClass').value;
             const filterSubject = document.getElementById('filterSubject').value;
             const filterHw = document.getElementById('filterHw').value;
 
-            // Filter Records
             let filtered = appState.records.filter(item => {
                 if (filterClass !== 'ALL' && item.className !== filterClass) return false;
                 if (filterSubject !== 'ALL' && item.subject !== filterSubject) return false;
@@ -947,7 +901,6 @@ function doGet(e) {
             }
 
             container.innerHTML = filtered.map(item => {
-                // Color theme styling based on Subject
                 let badgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
                 let subjectTag = item.subject;
                 
@@ -955,7 +908,7 @@ function doGet(e) {
                     badgeClass = 'bg-purple-100 text-purple-800 border-purple-200';
                 } else if (item.subject === 'CL' || ['1C', '2A', '3B'].includes(item.className)) {
                     badgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-200';
-                } else if (item.subject === 'ICT' || ['F4', 'F6'].includes(item.className)) {
+                } else if (item.subject === 'ICT' || ['F4', 'F5', 'F6'].includes(item.className)) {
                     badgeClass = 'bg-blue-100 text-blue-800 border-blue-200';
                 }
 
@@ -979,7 +932,6 @@ function doGet(e) {
                         <p class="text-xs text-slate-600 mt-1 leading-relaxed">${item.details || '（無額外通用備註）'}</p>
                     </div>
 
-                    <!-- STEAM Dynamic Info -->
                     ${item.className === '1B' ? `
                         <div class="bg-purple-50/70 p-3 rounded-lg border border-purple-100 text-xs space-y-1">
                             <div class="font-bold text-purple-800 flex items-center space-x-1">
@@ -992,12 +944,11 @@ function doGet(e) {
                         </div>
                     ` : ''}
 
-                    <!-- CL Dynamic Info -->
                     ${['1C', '2A', '3B'].includes(item.className) ? `
                         <div class="bg-emerald-50/70 p-3 rounded-lg border border-emerald-100 text-xs space-y-1">
                             <div class="font-bold text-emerald-800 flex items-center space-x-1">
                                 <i class="fa-solid fa-desktop text-emerald-600"></i>
-                                <span>CL 單元: ${item.clModule || '標準單元'}</span>
+                                <span>CL 課題: ${item.clModule || '標準單元'}</span>
                             </div>
                             ${item.clSoftware ? `<div class="text-emerald-700"><strong>軟體/教材:</strong> ${item.clSoftware}</div>` : ''}
                             ${item.clHandsOn ? `<div class="text-emerald-700"><strong>上機實作率:</strong> ${item.clHandsOn}</div>` : ''}
@@ -1005,8 +956,7 @@ function doGet(e) {
                         </div>
                     ` : ''}
 
-                    <!-- ICT Dynamic Info -->
-                    ${['F4', 'F6'].includes(item.className) ? `
+                    ${['F4', 'F5', 'F6'].includes(item.className) ? `
                         <div class="bg-blue-50/70 p-3 rounded-lg border border-blue-100 text-xs space-y-1">
                             <div class="font-bold text-blue-800 flex items-center space-x-1">
                                 <i class="fa-solid fa-code text-blue-600"></i>
@@ -1018,7 +968,6 @@ function doGet(e) {
                         </div>
                     ` : ''}
 
-                    <!-- Homework Tag -->
                     ${item.hasHomework ? `
                         <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-200/80 flex items-center justify-between text-xs">
                             <div class="flex items-center space-x-2 text-amber-900">
@@ -1042,7 +991,6 @@ function doGet(e) {
             }).join('');
         }
 
-        // Delete Record Locally
         function deleteRecord(id) {
             appState.records = appState.records.filter(r => r.id !== id);
             localStorage.setItem('teacher_app_records', JSON.stringify(appState.records));
@@ -1051,14 +999,13 @@ function doGet(e) {
             showToast('已刪除該筆本機紀錄', 'gray');
         }
 
-        // Export to CSV helper
         function exportCSV() {
             if (appState.records.length === 0) {
                 showToast('目前尚無紀錄可供匯出！', 'amber');
                 return;
             }
 
-            let csvContent = "\uFEFF"; // UTF-8 BOM
+            let csvContent = "\uFEFF";
             csvContent += "日期,班別,科目,課題,通用細節,是否有功課,功課名稱,繳交日期\n";
 
             appState.records.forEach(r => {
@@ -1086,7 +1033,6 @@ function doGet(e) {
             showToast('已成功匯出 CSV 檔！', 'green');
         }
 
-        // Fetch Remote Test call
         async function fetchFromGAS() {
             if (!appState.gasUrl) {
                 showToast('請先填寫 GAS Web App URL！', 'amber');
@@ -1106,46 +1052,6 @@ function doGet(e) {
             }
         }
 
-        // Tab Switcher
-        function switchTab(tab) {
-            appState.activeTab = tab;
-            const tabNew = document.getElementById('tabNew');
-            const tabHistory = document.getElementById('tabHistory');
-            const btnNew = document.getElementById('tabBtnNew');
-            const btnHistory = document.getElementById('tabBtnHistory');
-
-            if (tab === 'new') {
-                tabNew.classList.remove('hidden');
-                tabHistory.classList.add('hidden');
-                btnNew.className = "pb-2 border-b-2 border-brand-600 text-brand-600 font-bold text-sm flex items-center space-x-2 whitespace-nowrap";
-                btnHistory.className = "pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2 whitespace-nowrap";
-            } else {
-                tabNew.classList.add('hidden');
-                tabHistory.classList.remove('hidden');
-                btnHistory.className = "pb-2 border-b-2 border-brand-600 text-brand-600 font-bold text-sm flex items-center space-x-2 whitespace-nowrap";
-                btnNew.className = "pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2 whitespace-nowrap";
-                renderHistoryTable();
-            }
-        }
-
-        // Settings Modal Handlers
-        function openSettingsModal() {
-            document.getElementById('settingsModal').classList.remove('hidden');
-        }
-
-        function closeSettingsModal() {
-            document.getElementById('settingsModal').classList.add('hidden');
-        }
-
-        function saveGasSettings() {
-            const url = document.getElementById('gasUrlInput').value.trim() || DEFAULT_GAS_URL;
-            appState.gasUrl = url;
-            localStorage.setItem('teacher_app_gas_url', url);
-            updateGasBadgeStatus(!!url);
-            closeSettingsModal();
-            showToast('GAS 雲端連線設定已儲存！', 'green');
-        }
-
         function updateGasBadgeStatus(isConnected) {
             const badge = document.getElementById('gasStatusBadge');
             const badgeText = document.getElementById('gasStatusText');
@@ -1162,7 +1068,6 @@ function doGet(e) {
             document.getElementById('recordCountBadge').innerText = appState.records.length;
         }
 
-        // Copy Script helper
         function copyGasScript() {
             const codeText = document.getElementById('gasCodeBlock').innerText;
             const textarea = document.createElement('textarea');
@@ -1174,7 +1079,6 @@ function doGet(e) {
             showToast('GAS 程式碼已複製至剪貼簿！', 'green');
         }
 
-        // Toast Helper
         function showToast(message, color = 'blue') {
             const toastContainer = document.getElementById('toastContainer');
             const toast = document.createElement('div');
