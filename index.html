@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
-    <title>課堂紀錄與功課管理系統</title>
+    <title>課堂紀錄、功課管理與待辦事項系統</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -129,11 +129,11 @@
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
             <div class="flex items-center space-x-2.5 sm:space-x-3">
                 <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-md shrink-0">
-                    <i class="fa-solid fa-laptop-code"></i>
+                    <i class="fa-solid fa-list-check"></i>
                 </div>
                 <div>
-                    <h1 class="text-sm sm:text-lg font-bold text-slate-900 leading-tight">教師課堂細節與功課紀錄系統</h1>
-                    <p class="text-[10px] sm:text-xs text-slate-500">Classroom & Homework Tracker (STEAM / CL / ICT)</p>
+                    <h1 class="text-sm sm:text-lg font-bold text-slate-900 leading-tight">教師課堂細節、功課與待辦管理系統</h1>
+                    <p class="text-[10px] sm:text-xs text-slate-500">Classroom, Homework & To-Do Tracker (STEAM / CL / ICT)</p>
                 </div>
             </div>
 
@@ -170,10 +170,14 @@
 
         <!-- Tab Navigation & Quick Stats -->
         <div class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-2 gap-3">
-            <div class="flex space-x-4 sm:space-x-6">
+            <div class="flex space-x-3 sm:space-x-6 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 w-full md:w-auto">
                 <button id="tabBtnNew" onclick="switchTab('new')" class="pb-2 border-b-2 border-brand-600 text-brand-600 font-bold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]">
                     <i class="fa-solid fa-pen-to-square"></i>
                     <span>新增課堂紀錄</span>
+                </button>
+                <button id="tabBtnTodo" onclick="switchTab('todo')" class="pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]">
+                    <i class="fa-solid fa-square-check text-indigo-600"></i>
+                    <span>待辦事項 (To-Do) <span id="todoBadge" class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-indigo-100 text-indigo-700 font-bold">0</span></span>
                 </button>
                 <button id="tabBtnHistory" onclick="switchTab('history')" class="pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]">
                     <i class="fa-solid fa-rectangle-list"></i>
@@ -406,6 +410,10 @@
                             <label class="block text-xs font-semibold text-amber-900 uppercase mb-1">預計繳交日期 (Due Date) *</label>
                             <input type="date" id="hwDueDate" class="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm bg-white">
                         </div>
+                        <div class="md:col-span-3 flex items-center space-x-2">
+                            <input type="checkbox" id="autoCreateTodo" checked class="w-3.5 h-3.5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                            <label for="autoCreateTodo" class="text-xs text-amber-900 font-medium">同步自動新增至「待辦事項」(提醒批改此功課)</label>
+                        </div>
                     </div>
                 </div>
 
@@ -422,7 +430,171 @@
             </form>
         </section>
 
-        <!-- ================= TAB 2: HISTORY LIST & FILTER ================= -->
+        <!-- ================= TAB 2: TO-DO LIST MODULE ================= -->
+        <section id="tabTodo" class="hidden animate-fade-in space-y-6">
+            
+            <!-- Quick Todo Stats Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg shrink-0">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 font-medium">待辦事項總數</div>
+                        <div class="text-xl font-extrabold text-slate-800" id="statTodoTotal">0</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg shrink-0">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 font-medium">今天到期</div>
+                        <div class="text-xl font-extrabold text-amber-600" id="statTodoToday">0</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-lg shrink-0">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 font-medium">已逾期 (Overdue)</div>
+                        <div class="text-xl font-extrabold text-red-600" id="statTodoOverdue">0</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg shrink-0">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 font-medium">已完成</div>
+                        <div class="text-xl font-extrabold text-emerald-600" id="statTodoCompleted">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create New Todo Card -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-square-plus text-indigo-600 text-lg"></i>
+                        <h3 class="font-bold text-slate-800 text-sm">新增教師待辦 / 備課提醒事項</h3>
+                    </div>
+                    <span class="text-xs text-slate-400">高效管理教學日程與功課批改</span>
+                </div>
+
+                <form id="todoForm" onsubmit="handleAddTodo(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                        <div class="md:col-span-6">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">待辦內容描述 *</label>
+                            <input type="text" id="todoTitle" placeholder="例如：批改 1B Micro:bit 作業 / 準備 3B Python 上機試題" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+
+                        <div class="md:col-span-3">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">對應班別 (可選)</label>
+                            <select id="todoClass" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="通用">通用 / 全體</option>
+                                <option value="1B">1B (STEAM)</option>
+                                <option value="1C">1C (CL)</option>
+                                <option value="2A">2A (CL)</option>
+                                <option value="3B">3B (CL)</option>
+                                <option value="F4">F4 (ICT)</option>
+                                <option value="F5">F5 (ICT)</option>
+                                <option value="F6">F6 (ICT)</option>
+                            </select>
+                        </div>
+
+                        <div class="md:col-span-3">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">優先程度</label>
+                            <select id="todoPriority" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="high">🔴 緊急高優先</option>
+                                <option value="medium" selected>🟡 中等優先</option>
+                                <option value="low">🟢 一般低優先</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                        <div class="md:col-span-4">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">事項類別</label>
+                            <select id="todoCategory" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="功課批改">📝 功課/作業批改</option>
+                                <option value="課堂準備">💻 課堂教材與備課</option>
+                                <option value="教具硬體">🤖 教具/軟體準備</option>
+                                <option value="行政/開會">📋 學校行政與會議</option>
+                                <option value="家長聯絡">📞 家長/學生輔導</option>
+                                <option value="其他">📌 其他事項</option>
+                            </select>
+                        </div>
+
+                        <div class="md:col-span-5">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">預計完成期限 (Deadline)</label>
+                            <input type="datetime-local" id="todoDueDate" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                        </div>
+
+                        <div class="md:col-span-3 flex items-end">
+                            <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-md transition flex items-center justify-center space-x-1.5 min-h-[40px]">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>新增待辦事項</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Todo Filter and Action Controls -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
+                    <!-- Status Filter -->
+                    <div class="flex items-center space-x-1 border border-slate-200 p-1 rounded-lg bg-slate-50 text-xs">
+                        <button onclick="setTodoStatusFilter('all')" id="todoFilterBtnAll" class="px-2.5 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-sm transition">全部</button>
+                        <button onclick="setTodoStatusFilter('pending')" id="todoFilterBtnPending" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">未完成</button>
+                        <button onclick="setTodoStatusFilter('overdue')" id="todoFilterBtnOverdue" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">已逾期</button>
+                        <button onclick="setTodoStatusFilter('completed')" id="todoFilterBtnCompleted" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">已完成</button>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <select id="filterTodoCategory" onchange="renderTodoList()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:ring-indigo-500 font-medium">
+                        <option value="ALL">全部類別</option>
+                        <option value="功課批改">📝 功課/作業批改</option>
+                        <option value="課堂準備">💻 課堂教材與備課</option>
+                        <option value="教具硬體">🤖 教具/軟體準備</option>
+                        <option value="行政/開會">📋 學校行政與會議</option>
+                        <option value="家長聯絡">📞 家長/學生輔導</option>
+                        <option value="其他">📌 其他事項</option>
+                    </select>
+
+                    <!-- Class Filter -->
+                    <select id="filterTodoClass" onchange="renderTodoList()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:ring-indigo-500 font-medium">
+                        <option value="ALL">全部班別</option>
+                        <option value="通用">通用</option>
+                        <option value="1B">1B</option>
+                        <option value="1C">1C</option>
+                        <option value="2A">2A</option>
+                        <option value="3B">3B</option>
+                        <option value="F4">F4</option>
+                        <option value="F5">F5</option>
+                        <option value="F6">F6</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center space-x-2 ml-auto">
+                    <button onclick="clearCompletedTodos()" class="px-3 py-1.5 border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs rounded-lg transition">
+                        <i class="fa-regular fa-trash-can mr-1"></i> 清除已完成事項
+                    </button>
+                </div>
+            </div>
+
+            <!-- Todo Items List -->
+            <div id="todoListContainer" class="space-y-3">
+                <!-- Rendered dynamically via JavaScript -->
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: HISTORY LIST & FILTER ================= -->
         <section id="tabHistory" class="hidden animate-fade-in space-y-4">
             
             <!-- Filters Bar -->
@@ -612,9 +784,11 @@ function doGet(e) {
         // System State
         let appState = {
             records: [],
+            todos: [],
             gasUrl: localStorage.getItem('teacher_app_gas_url') || DEFAULT_GAS_URL,
             sheetUrl: localStorage.getItem('teacher_app_sheet_url') || DEFAULT_SHEET_URL,
-            activeTab: 'new'
+            activeTab: 'new',
+            todoFilterStatus: 'all'
         };
 
         // Open Google Sheet Function
@@ -653,19 +827,19 @@ function doGet(e) {
                 clClassBadge.innerText = `${classVal} 專屬 CL 課題`;
 
                 // Update CL Topics based on requested Grade level
-                if (classVal === '1C') { // 中一: Scratch, 電腦, AI
+                if (classVal === '1C') {
                     clModuleSelect.innerHTML = `
                         <option value="Scratch 程式設計">Scratch 圖像化程式編寫</option>
                         <option value="電腦基礎認知與操作">電腦基礎認知與電腦系統</option>
                         <option value="AI 人工智慧基礎概念">AI 人工智慧基礎與應用</option>
                     `;
-                } else if (classVal === '2A') { // 中二: Photopea, App Inventor, AI
+                } else if (classVal === '2A') {
                     clModuleSelect.innerHTML = `
                         <option value="Photopea 影像處理與設計">Photopea 影像處理與繪圖設計</option>
                         <option value="App Inventor 行動應用程式開發">App Inventor 行動 App 開發</option>
                         <option value="AI 進階應用與機器學習">AI 進階應用與生成式 AI</option>
                     `;
-                } else if (classVal === '3B') { // 中三: Python, 網頁及互聯網, AI
+                } else if (classVal === '3B') {
                     clModuleSelect.innerHTML = `
                         <option value="Python 程式語言基礎">Python 程式語言與邏輯演算法</option>
                         <option value="網頁設計與網際網路架構">網頁設計 (HTML/CSS) 與網際網路</option>
@@ -711,20 +885,34 @@ function doGet(e) {
         function switchTab(tab) {
             appState.activeTab = tab;
             const tabNew = document.getElementById('tabNew');
+            const tabTodo = document.getElementById('tabTodo');
             const tabHistory = document.getElementById('tabHistory');
+
             const btnNew = document.getElementById('tabBtnNew');
+            const btnTodo = document.getElementById('tabBtnTodo');
             const btnHistory = document.getElementById('tabBtnHistory');
+
+            tabNew.classList.add('hidden');
+            tabTodo.classList.add('hidden');
+            tabHistory.classList.add('hidden');
+
+            const activeClass = "pb-2 border-b-2 border-brand-600 text-brand-600 font-bold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]";
+            const inactiveClass = "pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]";
+
+            btnNew.className = inactiveClass;
+            btnTodo.className = inactiveClass;
+            btnHistory.className = inactiveClass;
 
             if (tab === 'new') {
                 tabNew.classList.remove('hidden');
-                tabHistory.classList.add('hidden');
-                btnNew.className = "pb-2 border-b-2 border-brand-600 text-brand-600 font-bold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]";
-                btnHistory.className = "pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]";
+                btnNew.className = activeClass;
+            } else if (tab === 'todo') {
+                tabTodo.classList.remove('hidden');
+                btnTodo.className = "pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]";
+                renderTodoList();
             } else {
-                tabNew.classList.add('hidden');
                 tabHistory.classList.remove('hidden');
-                btnHistory.className = "pb-2 border-b-2 border-brand-600 text-brand-600 font-bold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]";
-                btnNew.className = "pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap min-h-[40px]";
+                btnHistory.className = activeClass;
                 renderHistoryTable();
             }
 
@@ -785,9 +973,19 @@ function doGet(e) {
                 }
             }
 
+            const savedTodos = localStorage.getItem('teacher_app_todos');
+            if (savedTodos) {
+                try {
+                    appState.todos = JSON.parse(savedTodos);
+                } catch (e) {
+                    appState.todos = [];
+                }
+            }
+
             updateGasBadgeStatus(!!appState.gasUrl);
             updateNetworkStatus();
             renderHistoryTable();
+            renderTodoList();
             updateRecordCountBadge();
             notifyParentHeight();
         });
@@ -803,6 +1001,10 @@ function doGet(e) {
                 return;
             }
 
+            const hasHw = document.getElementById('hasHomeworkToggle').checked;
+            const hwTitleVal = hasHw ? document.getElementById('hwTitle').value : '';
+            const hwDueDateVal = hasHw ? document.getElementById('hwDueDate').value : '';
+
             const formData = {
                 id: Date.now(),
                 createdAt: new Date().toISOString(),
@@ -811,9 +1013,9 @@ function doGet(e) {
                 subject: document.getElementById('inputSubject').value,
                 topic: document.getElementById('inputTopic').value,
                 details: document.getElementById('inputDetails').value,
-                hasHomework: document.getElementById('hasHomeworkToggle').checked,
-                hwTitle: document.getElementById('hasHomeworkToggle').checked ? document.getElementById('hwTitle').value : '',
-                hwDueDate: document.getElementById('hasHomeworkToggle').checked ? document.getElementById('hwDueDate').value : '',
+                hasHomework: hasHw,
+                hwTitle: hwTitleVal,
+                hwDueDate: hwDueDateVal,
                 
                 steamModule: selectedClass === '1B' ? document.getElementById('steamModule').value : '',
                 steamEquipment: selectedClass === '1B' ? document.getElementById('steamEquipment').value : '',
@@ -830,6 +1032,22 @@ function doGet(e) {
                 ictTool: ['F4', 'F5', 'F6'].includes(selectedClass) ? document.getElementById('ictTool').value : '',
                 ictNotes: ['F4', 'F5', 'F6'].includes(selectedClass) ? document.getElementById('ictNotes').value : ''
             };
+
+            // Auto Create Todo Item if Homework Checked
+            if (hasHw && document.getElementById('autoCreateTodo').checked) {
+                const autoTodo = {
+                    id: Date.now() + 1,
+                    title: `批改 ${selectedClass} 功課: ${hwTitleVal}`,
+                    className: selectedClass,
+                    priority: 'high',
+                    category: '功課批改',
+                    dueDate: hwDueDateVal ? `${hwDueDateVal}T23:59` : '',
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+                appState.todos.unshift(autoTodo);
+                localStorage.setItem('teacher_app_todos', JSON.stringify(appState.todos));
+            }
 
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>同步儲存中...</span>`;
@@ -863,6 +1081,7 @@ function doGet(e) {
 
             resetForm();
             renderHistoryTable();
+            renderTodoList();
             updateRecordCountBadge();
         }
 
@@ -876,6 +1095,169 @@ function doGet(e) {
             document.getElementById('subjectHintText').innerText = "選擇班別後系統將自動套用預設科目。";
         }
 
+        // ================= TO-DO LIST FUNCTIONS ================= //
+        function handleAddTodo(e) {
+            e.preventDefault();
+            const title = document.getElementById('todoTitle').value.trim();
+            if (!title) return;
+
+            const newTodo = {
+                id: Date.now(),
+                title: title,
+                className: document.getElementById('todoClass').value,
+                priority: document.getElementById('todoPriority').value,
+                category: document.getElementById('todoCategory').value,
+                dueDate: document.getElementById('todoDueDate').value,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            appState.todos.unshift(newTodo);
+            localStorage.setItem('teacher_app_todos', JSON.stringify(appState.todos));
+            
+            document.getElementById('todoForm').reset();
+            renderTodoList();
+            showToast('已新增待辦事項！', 'purple');
+        }
+
+        function toggleTodoStatus(id) {
+            const todo = appState.todos.find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                localStorage.setItem('teacher_app_todos', JSON.stringify(appState.todos));
+                renderTodoList();
+                showToast(todo.completed ? '已完成該事項！' : '重設為未完成', 'blue');
+            }
+        }
+
+        function deleteTodo(id) {
+            appState.todos = appState.todos.filter(t => t.id !== id);
+            localStorage.setItem('teacher_app_todos', JSON.stringify(appState.todos));
+            renderTodoList();
+            showToast('已刪除待辦事項', 'gray');
+        }
+
+        function clearCompletedTodos() {
+            const initialCount = appState.todos.length;
+            appState.todos = appState.todos.filter(t => !t.completed);
+            const clearedCount = initialCount - appState.todos.length;
+            localStorage.setItem('teacher_app_todos', JSON.stringify(appState.todos));
+            renderTodoList();
+            showToast(`已清理 ${clearedCount} 項已完成事項`, 'gray');
+        }
+
+        function setTodoStatusFilter(status) {
+            appState.todoFilterStatus = status;
+            ['All', 'Pending', 'Overdue', 'Completed'].forEach(btn => {
+                const el = document.getElementById(`todoFilterBtn${btn}`);
+                if (btn.toLowerCase() === status) {
+                    el.className = "px-2.5 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-sm transition";
+                } else {
+                    el.className = "px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition";
+                }
+            });
+            renderTodoList();
+        }
+
+        function renderTodoList() {
+            const container = document.getElementById('todoListContainer');
+            const categoryFilter = document.getElementById('filterTodoCategory').value;
+            const classFilter = document.getElementById('filterTodoClass').value;
+            const now = new Date();
+
+            // Calculate Stats
+            let total = appState.todos.length;
+            let completedCount = appState.todos.filter(t => t.completed).length;
+            let todayCount = 0;
+            let overdueCount = 0;
+
+            const todayStr = now.toISOString().slice(0, 10);
+
+            appState.todos.forEach(t => {
+                if (!t.completed && t.dueDate) {
+                    const due = new Date(t.dueDate);
+                    if (t.dueDate.slice(0, 10) === todayStr) {
+                        todayCount++;
+                    }
+                    if (due < now) {
+                        overdueCount++;
+                    }
+                }
+            });
+
+            document.getElementById('statTodoTotal').innerText = total;
+            document.getElementById('statTodoCompleted').innerText = completedCount;
+            document.getElementById('statTodoToday').innerText = todayCount;
+            document.getElementById('statTodoOverdue').innerText = overdueCount;
+            document.getElementById('todoBadge').innerText = total - completedCount;
+
+            // Filter Todos
+            let filtered = appState.todos.filter(todo => {
+                const isOverdue = !todo.completed && todo.dueDate && new Date(todo.dueDate) < now;
+                
+                if (appState.todoFilterStatus === 'pending' && todo.completed) return false;
+                if (appState.todoFilterStatus === 'completed' && !todo.completed) return false;
+                if (appState.todoFilterStatus === 'overdue' && !isOverdue) return false;
+
+                if (categoryFilter !== 'ALL' && todo.category !== categoryFilter) return false;
+                if (classFilter !== 'ALL' && todo.className !== classFilter) return false;
+
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-10 rounded-2xl border border-slate-200 text-center text-slate-400 space-y-2">
+                        <i class="fa-regular fa-clipboard text-4xl text-slate-300"></i>
+                        <p class="text-xs font-medium">目前沒有符合條件的待辦事項</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(todo => {
+                const isOverdue = !todo.completed && todo.dueDate && new Date(todo.dueDate) < now;
+                
+                let priorityBadge = '';
+                if (todo.priority === 'high') priorityBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">高優先</span>';
+                else if (todo.priority === 'medium') priorityBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">中優先</span>';
+                else priorityBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">低優先</span>';
+
+                let formattedDueDate = todo.dueDate ? new Date(todo.dueDate).toLocaleString('zh-HK', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '無期限';
+
+                return `
+                    <div class="bg-white p-4 rounded-xl border ${todo.completed ? 'border-slate-200 bg-slate-50/50' : (isOverdue ? 'border-red-300 bg-red-50/20' : 'border-slate-200')} shadow-sm hover:shadow-md transition flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-start space-x-3 flex-1 min-w-[240px]">
+                            <button onclick="toggleTodoStatus(${todo.id})" class="mt-0.5 text-lg transition text-slate-400 hover:text-indigo-600">
+                                ${todo.completed ? '<i class="fa-solid fa-circle-check text-emerald-600"></i>' : '<i class="fa-regular fa-circle text-slate-300"></i>'}
+                            </button>
+                            <div class="space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="font-semibold text-sm ${todo.completed ? 'line-through text-slate-400' : 'text-slate-800'}">${todo.title}</span>
+                                    ${priorityBadge}
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">${todo.category || '通用'}</span>
+                                    ${todo.className !== '通用' ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">${todo.className} 班</span>` : ''}
+                                </div>
+                                <div class="flex items-center space-x-3 text-xs text-slate-400 font-mono">
+                                    <span class="${isOverdue ? 'text-red-600 font-bold' : ''}">
+                                        <i class="fa-regular fa-clock mr-1"></i>期限: ${formattedDueDate}
+                                    </span>
+                                    ${isOverdue ? '<span class="text-[10px] bg-red-600 text-white font-bold px-1.5 py-0.2 rounded">已逾期</span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2 shrink-0">
+                            <button onclick="deleteTodo(${todo.id})" class="text-xs text-slate-400 hover:text-red-600 p-1.5 rounded transition">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render Classroom History Table
         function renderHistoryTable() {
             const container = document.getElementById('historyListContainer');
             const filterClass = document.getElementById('filterClass').value;
